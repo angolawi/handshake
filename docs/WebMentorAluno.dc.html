@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Mentor · Mentorado</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.d{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif}
+.lab{font-size:13px;font-weight:600;color:#5B607A;letter-spacing:.06em;text-transform:uppercase}
+.hl{background:linear-gradient(to top,#FFD84D 0,#FFD84D 38%,transparent 38%)}
+.card{background:#fff;border:1px solid #E3E5F3;border-radius:16px}
+.chip{display:inline-block;padding:3px 10px;border-radius:9px;font-size:12px;font-weight:500;white-space:nowrap}
+.dec{background:#D3E3F5;color:#1F3F66}
+.rac{background:#FFF2CC;color:#6B4F00}
+.f1{background:#EEEFF6;color:#3A3F5C}
+.f2{background:#FDE8D2;color:#8A3F05}
+.ok{background:#CFEBD8;color:#17603A}
+.wn{background:#FFE9B8;color:#7A4B00}
+.gr{background:#BFE5C8;color:#17603A}
+.sb{width:232px;flex:none;background:#fff;border-right:1px solid #E3E5F3;padding:28px 16px;display:flex;flex-direction:column;gap:4px;box-sizing:border-box}
+.nv{background:none;border:none;height:44px;text-align:left;font-size:15px;color:#5B607A;padding:0 12px;border-radius:10px}
+.nv.on{color:#14162B;font-weight:600;background:#F0F1FA}
+.btn{height:44px;padding:0 20px;border-radius:12px;border:1px solid #D9DCEB;background:#fff;font-weight:600;font-size:15px;color:#14162B}
+.pri{border:none;color:#fff;background:{{accent}}}
+.fld{height:44px;border-radius:12px;border:1px solid #D9DCEB;background:#fff;padding:0 14px;font-size:15px;color:#14162B;width:100%;box-sizing:border-box}
+.bar{height:6px;border-radius:3px;background:#E3E5F3;overflow:hidden}
+.bar i{display:block;height:100%;background:#3FA66B}
+.tb{background:none;border:none;height:44px;padding:0 16px;font-size:15px;color:#5B607A;border-bottom:3px solid transparent}.tb.on{color:#14162B;font-weight:600;border-bottom-color:#FFD84D}.dr{display:grid;grid-template-columns:minmax(160px,1fr) 70px 110px 54px;gap:12px;align-items:center;padding:12px 20px;border-top:1px solid #EEF0F7}.au{display:grid;grid-template-columns:56px 1fr;gap:12px;padding:8px 0;border-top:1px solid #EEF0F7;font-size:14px}
+</style>
+</helmet>
+<div style="display:flex;min-height:100%;background:#F5F6FA;color:#14162B;font-family:'Figtree',system-ui,sans-serif">
+<div class="sb">
+<div style="display:flex;align-items:center;gap:8px;padding:0 12px 4px">
+<svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13.6 A12 12 0 0 1 24 34.4 A12 12 0 0 1 24 13.6 Z" fill="#FFD84D"/><circle cx="18" cy="24" r="12" fill="none" style="stroke:{{accent}}" stroke-width="4"/><circle cx="30" cy="24" r="12" fill="none" stroke="#8B86E8" stroke-width="4"/></svg>
+<span class="d" style="font-weight:700;font-size:24px;letter-spacing:-0.02em">hand<span class="hl">shake</span></span>
+</div>
+<div style="padding:0 12px 20px;font-size:13px;color:#5B607A">Visão do mentor</div>
+<button class="nv on"><span class="hl">Mentorados</span></button>
+<button class="nv">Editais</button>
+<button class="nv">Ciclos</button>
+<button class="nv">Convites</button>
+</div>
+<div style="flex:1;min-width:0;padding:40px 48px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;justify-content:space-between;align-items:flex-end"><div><div class="lab">Mentorado · CGU</div><div class="d" style="font-weight:700;font-size:36px;letter-spacing:-0.02em;margin-top:2px">Marina R.</div><div style="margin-top:6px;display:flex;gap:8px"><span class="chip gr">reunião às terças</span><span class="chip f1">mentoria até 30/04/2027</span></div></div><div style="display:flex;gap:10px"><button class="btn">Ajustar tempos</button><button class="btn">Histórico de edições</button></div></div><div style="display:flex;gap:4px;border-bottom:1px solid #E3E5F3"><button class="tb on">Visão geral</button><button class="tb">Controle</button><button class="tb">Disciplinas</button><button class="tb">Questões</button><button class="tb">Resumos</button><button class="tb">Histórico</button></div><div style="display:flex;gap:16px"><div class="card" style="flex:1;padding:16px 20px"><div class="lab">Sessões</div><div class="d" style="font-weight:700;font-size:32px;letter-spacing:-0.02em;margin-top:2px">14 de 15</div><div style="font-size:14px;color:#5B607A">últimos 7 dias</div></div><div class="card" style="flex:1;padding:16px 20px"><div class="lab">Revisão noturna</div><div class="d" style="font-weight:700;font-size:32px;letter-spacing:-0.02em;margin-top:2px">6 de 7</div><div style="font-size:14px;color:#5B607A">últimos 7 dias</div></div><div class="card" style="flex:1;padding:16px 20px"><div class="lab">Questões entre reuniões</div><div class="d" style="font-weight:700;font-size:32px;letter-spacing:-0.02em;margin-top:2px">22 · 82%</div><div style="font-size:14px;color:#5B607A">desde a reunião de 06/10</div></div></div><div style="display:flex;gap:16px;align-items:flex-start"><div class="card" style="flex:1.5;min-width:0;padding:6px 0 4px"><div class="dr" style="border-top:none"><div class="lab">Disciplina</div><div class="lab">Fase</div><div class="lab">Tópicos</div><div class="lab" style="text-align:right">Acerto</div></div><div class="dr"><div style="font-size:14px;font-weight:600;line-height:1.3">Estado, Democracia, Direitos e Ciência Política</div><div><span class="chip f1">Fase 1</span></div><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="width:56px"><i style="width:21%"></i></div><span style="font-size:13px">3/14</span></div><div style="font-size:14px;text-align:right">87%</div></div><div class="dr"><div style="font-size:14px;font-weight:600;line-height:1.3">Fundamentos de Evidências, Dados e IA</div><div><span class="chip f1">Fase 1</span></div><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="width:56px"><i style="width:22%"></i></div><span style="font-size:13px">2/9</span></div><div style="font-size:14px;text-align:right">100%</div></div><div class="dr"><div style="font-size:14px;font-weight:600;line-height:1.3">Fundamentos de Transparência, Ouvidoria e Participação Social</div><div><span class="chip f1">Fase 1</span></div><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="width:56px"><i style="width:25%"></i></div><span style="font-size:13px">4/16</span></div><div style="font-size:14px;text-align:right">—</div></div><div class="dr"><div style="font-size:14px;font-weight:600;line-height:1.3">Persistência, Integração e Proteção de Dados</div><div><span class="chip f1">Fase 1</span></div><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="width:56px"><i style="width:8%"></i></div><span style="font-size:13px">1/12</span></div><div style="font-size:14px;text-align:right">—</div></div><div class="dr"><div style="font-size:14px;font-weight:600;line-height:1.3">Engenharia de Software e Programação</div><div><span class="chip f2">Fase 2</span></div><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="width:56px"><i style="width:70%"></i></div><span style="font-size:13px">7/10</span></div><div style="font-size:14px;text-align:right">76%</div></div></div><div class="card" style="flex:1;padding:18px 20px;display:flex;flex-direction:column;gap:12px"><div class="d" style="font-weight:700;font-size:20px">Resumos recentes</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div><div style="aspect-ratio:4/3;border-radius:10px;background:#EEF0F7;border:1px solid #E3E5F3;display:flex;align-items:center;justify-content:center;font-size:12px;color:#8A8FA8">foto do resumo</div><div style="font-size:12px;color:#5B607A;margin-top:4px;line-height:1.3">11/10 · Persistência 1.2</div></div><div><div style="aspect-ratio:4/3;border-radius:10px;background:#EEF0F7;border:1px solid #E3E5F3;display:flex;align-items:center;justify-content:center;font-size:12px;color:#8A8FA8">foto do resumo</div><div style="font-size:12px;color:#5B607A;margin-top:4px;line-height:1.3">10/10 · Estado 1.1.2</div></div><div><div style="aspect-ratio:4/3;border-radius:10px;background:#EEF0F7;border:1px solid #E3E5F3;display:flex;align-items:center;justify-content:center;font-size:12px;color:#8A8FA8">foto do resumo</div><div style="font-size:12px;color:#5B607A;margin-top:4px;line-height:1.3">10/10 · Evidências 1</div></div></div><input class="fld" placeholder="Escreva um comentário sobre o resumo" aria-label="Comentário"><button class="btn pri" style="align-self:flex-end">Comentar</button></div></div><div class="card" style="padding:18px 20px"><div class="d" style="font-weight:700;font-size:20px;margin-bottom:8px">Suas correções neste mentorado</div><div class="au"><span>11/10</span><span>Conclusão do tópico 1.1.1 alterada de 10/10 para 11/10</span></div><div class="au"><span>09/10</span><span>Tempos da Fase 1 ajustados para 40/10/5 (padrão 45/10/5)</span></div></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4338CA"},"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#4338CA' };
+}
+}
+</script>
+</body>
+</html>

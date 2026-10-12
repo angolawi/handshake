@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Controle do ciclo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;cursor:pointer}
+.d{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif}
+.hl{background:linear-gradient(to top,#FFD84D 0,#FFD84D 38%,transparent 38%)}
+.nv{background:none;border:none;min-height:44px;font-size:14px;color:#5B607A;padding:0 4px}
+.g{display:grid;grid-template-columns:132px repeat(30,28px);gap:2px;width:max-content;margin-bottom:2px}
+.lb{position:sticky;left:0;z-index:2;min-height:38px;border-radius:8px;display:flex;align-items:center;padding:0 8px;font-size:12px;font-weight:600;line-height:1.2;box-sizing:border-box}
+.pd{background:#D3E3F5;border-color:#D3E3F5;color:#1F3F66}
+.pr{background:#FFF2CC;border-color:#FFF2CC;color:#6B4F00}
+.nt{background:#14162B;color:#fff}
+.ms{background:#6FA8DC;color:#14162B}
+.cl{height:38px;border-radius:6px;background:#fff;border:1px solid #ECEDF5;box-sizing:border-box;display:flex;align-items:center;justify-content:center}
+.dn{background:#8EC5FF;border-color:#8EC5FF}
+.hd{height:56px;border-radius:6px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;box-sizing:border-box;background:#fff;border:1px solid #ECEDF5}
+.hd span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;font-weight:600;white-space:nowrap}
+.td{outline:2px solid #14162B;outline-offset:-2px}
+.bx{border:2px solid #6FA8DC;background:#fff}
+.lg{display:flex;align-items:center;gap:6px;font-size:13px;color:#3A3F5C}
+.sq{width:14px;height:14px;border-radius:4px;display:inline-block}
+.wk{background:#E4E6EE;border-color:#E4E6EE}
+.wk.dn{background:#8EC5FF;border-color:#8EC5FF}
+.wk.bx{background:#fff;border-color:#6FA8DC}
+.mt{background:#BFE5C8;border-color:#7FC48E;color:#17603A}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#F5F6FA;color:#14162B;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;padding:56px 24px 0;gap:16px">
+<div>
+<div class="d" style="font-weight:700;font-size:32px;letter-spacing:-0.02em">Controle</div>
+<div style="font-size:15px;color:#5B607A;margin-top:2px">Ciclo 01 · iniciado em 09/10</div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #E3E5F3;border-radius:14px;padding:0 6px 0 14px;height:52px">
+<div style="display:flex;align-items:center;gap:10px">
+<span style="width:22px;height:22px;border-radius:11px;background:#8EC5FF"></span>
+<div><div style="font-size:15px;font-weight:600">Rodada 1</div><div style="font-size:13px;color:#5B607A">Azul-claro, até o fim da rodada</div></div>
+</div>
+<button style="height:44px;padding:0 14px;border:none;background:none;font-weight:600;font-size:15px;color:{{accent}}">Alterar</button>
+</div>
+<div style="background:#fff;border:1px solid #E3E5F3;border-radius:16px;padding:6px;overflow-x:auto">
+<div class="g"><div class="lb" style="background:#fff"></div>
+<div class="hd wk"><span>10 out</span></div>
+<div class="hd wk td"><span>11 out</span></div>
+<div class="hd"><span>12 out</span></div>
+<div class="hd mt"><span>13 out</span></div>
+<div class="hd"><span>14 out</span></div>
+<div class="hd"><span>15 out</span></div>
+<div class="hd"><span>16 out</span></div>
+<div class="hd wk"><span>17 out</span></div>
+<div class="hd wk"><span>18 out</span></div>
+<div class="hd"><span>19 out</span></div>
+<div class="hd mt"><span>20 out</span></div>
+<div class="hd"><span>21 out</span></div>
+<div class="hd"><span>22 out</span></div>
+<div class="hd"><span>23 out</span></div>
+<div class="hd wk"><span>24 out</span></div>
+<div class="hd wk"><span>25 out</span></div>
+<div class="hd"><span>26 out</span></div>
+<div class="hd mt"><span>27 out</span></div>
+<div class="hd"><span>28 out</span></div>
+<div class="hd"><span>29 out</span></div>
+<div class="hd"><span>30 out</span></div>
+<div class="hd wk"><span>31 out</span></div>
+<div class="hd wk"><span>1 nov</span></div>
+<div class="hd"><span>2 nov</span></div>
+<div class="hd mt"><span>3 nov</span></div>
+<div class="hd"><span>4 nov</span></div>
+<div class="hd"><span>5 nov</span></div>
+<div class="hd"><span>6 nov</span></div>
+<div class="hd wk"><span>7 nov</span></div>
+<div class="hd wk"><span>8 nov</span></div>
+</div>
+<div class="g"><div class="lb pd">Estado, Democracia, Direitos</div>
+<div class="cl dn wk"><svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="#14162B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pr">Fundamentos de Evidências</div>
+<div class="cl dn wk"><svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="#14162B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pr wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pd">Fundamentos de Auditoria</div>
+<div class="cl dn wk"><svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="#14162B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pr">Persistência, Integração</div>
+<div class="cl wk"></div>
+<div class="cl dn wk"><svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="#14162B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pr wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pd">Fundamentos de Transparência</div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pd">Sociedade brasileira, Desigualdades</div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pd">Fundamentos de Governança</div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+</div>
+<div class="g"><div class="lb pr">Desenvolvimento Seguro</div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pr wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pr wk"></div>
+</div>
+<div class="g"><div class="lb pd">Fundamentos de Direito Público</div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+</div>
+<div class="g" style="margin-top:6px"><div class="lb nt">Revisão noturna</div>
+<div class="cl wk"><span style="width:10px;height:10px;border-radius:5px;background:#14162B"></span></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb ms">Revisão mensal</div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div class="cl bx wk"></div>
+<div class="cl bx wk"></div>
+</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px 14px">
+<div class="lg"><span class="sq" style="background:#D3E3F5"></span>decoreba</div>
+<div class="lg"><span class="sq" style="background:#FFF2CC"></span>raciocínio</div>
+<div class="lg"><span class="sq" style="background:#8EC5FF"></span>estudado</div>
+<div class="lg"><span class="sq wk"></span>fim de semana</div>
+<div class="lg"><span class="sq mt" style="border:1px solid #7FC48E"></span>reunião</div>
+</div>
+<div style="margin:auto -24px 0;background:#fff;border-top:1px solid #E3E5F3;padding:8px 24px 24px;display:flex;justify-content:space-between">
+<button class="nv">Hoje</button>
+<button class="nv">Edital</button>
+<button class="nv" style="font-weight:600;color:#14162B"><span class="hl">Controle</span></button>
+<button class="nv">Revisões</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4338CA"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#4338CA' };
+}
+}
+</script>
+</body>
+</html>

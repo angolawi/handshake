@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Edital</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;cursor:pointer}
+.d{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif}
+.lab{font-size:13px;font-weight:600;color:#5B607A;letter-spacing:.06em;text-transform:uppercase}
+.dec{background:#D3E3F5;color:#1F3F66}
+.rac{background:#FFF2CC;color:#6B4F00}
+.hl{background:linear-gradient(to top,#FFD84D 0,#FFD84D 38%,transparent 38%)}
+.nv{background:none;border:none;min-height:44px;font-size:14px;color:#5B607A;padding:0 4px}
+.card{background:#fff;border:1px solid #E3E5F3;border-radius:14px;padding:14px}
+.nm{font-size:16px;font-weight:600;line-height:1.3}
+.ch{display:inline-block;padding:3px 9px;border-radius:9px;font-size:12px;font-weight:500;margin-right:6px;margin-top:8px}
+.f{background:#EEEFF6;color:#3A3F5C}
+.cic{border:1px solid #4338CA;color:#2F2A9E;background:#fff}
+.gh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.gm{font-size:13px;color:#5B607A}
+.lg{display:flex;align-items:center;gap:6px;font-size:13px;color:#3A3F5C}
+.dt{width:10px;height:10px;border-radius:5px;display:inline-block}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#F5F6FA;color:#14162B;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;padding:56px 24px 0;gap:20px">
+<div>
+<div class="d" style="font-weight:700;font-size:32px;letter-spacing:-0.02em">Edital</div>
+<div style="font-size:15px;color:#5B607A;margin-top:2px">Concurso CGU</div>
+</div>
+<div style="display:flex;gap:16px">
+<div class="lg"><span class="dt" style="border:2px solid #14162B;box-sizing:border-box"></span>Fase 1</div>
+<div class="lg"><span class="dt" style="background:#B45309"></span>Fase 2</div>
+<div class="lg"><span class="dt" style="background:#C62828"></span>Fase 3</div>
+</div>
+<div>
+<div class="gh"><div class="lab">Básicas</div><div class="gm">40 questões · peso 1</div></div>
+<div class="card"><div class="nm">Estado, Democracia, Direitos e Ciência Política</div><span class="ch f">Fase 1</span><span class="ch dec">decoreba</span><span class="ch cic">no ciclo</span></div>
+</div>
+<div>
+<div class="gh"><div class="lab">Complementares</div><div class="gm">40 questões · peso 1</div></div>
+<div class="card"><div class="nm">Fundamentos de Transparência, Ouvidoria e Participação Social</div><span class="ch f">Fase 1</span><span class="ch dec">decoreba</span><span class="ch cic">no ciclo</span></div>
+</div>
+<div>
+<div class="gh"><div class="lab">Específicas</div><div class="gm">90 questões · peso 2</div></div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div class="card"><div class="nm" style="color:#B45309">Engenharia de Software e Programação</div><span class="ch f">Fase 2</span><span class="ch rac">raciocínio</span></div>
+<div class="card"><div class="nm">Persistência, Integração e Proteção de Dados</div><span class="ch f">Fase 1</span><span class="ch rac">raciocínio</span><span class="ch cic">no ciclo</span></div>
+</div></div>
+<div style="margin:auto -24px 0;background:#fff;border-top:1px solid #E3E5F3;padding:8px 24px 24px;display:flex;justify-content:space-between">
+<button class="nv">Hoje</button>
+<button class="nv" style="font-weight:600;color:#14162B"><span class="hl">Edital</span></button>
+<button class="nv">Controle</button>
+<button class="nv">Revisões</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4338CA"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#4338CA' };
+}
+}
+</script>
+</body>
+</html>

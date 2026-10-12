@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Sessão de estudo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;cursor:pointer}
+.d{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif}
+.hl{background:linear-gradient(to top,#FFD84D 0,#FFD84D 34%,transparent 34%)}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#F5F6FA;color:#14162B;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;padding:56px 24px 32px;gap:24px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="display:flex;align-items:center;gap:8px">
+<svg width="24" height="24" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13.6 A12 12 0 0 1 24 34.4 A12 12 0 0 1 24 13.6 Z" fill="#FFD84D"/><circle cx="18" cy="24" r="12" fill="none" style="stroke:{{accent}}" stroke-width="4"/><circle cx="30" cy="24" r="12" fill="none" stroke="#8B86E8" stroke-width="4"/></svg>
+<span class="d" style="font-weight:700;font-size:22px;letter-spacing:-0.02em">hand<span class="hl">shake</span></span>
+</div>
+<button aria-label="Fechar sessão" style="width:44px;height:44px;border-radius:22px;border:1px solid #D9DCEB;background:#fff;color:#14162B;font-size:22px;line-height:1">×</button>
+</div>
+<div>
+<div style="font-size:13px;font-weight:600;color:#5B607A;letter-spacing:.06em;text-transform:uppercase">Fase 1 · Decoreba</div>
+<div class="d" style="font-weight:700;font-size:26px;line-height:1.15;margin-top:8px;letter-spacing:-0.01em">Recorrências em manifestações como sinais de problemas</div>
+<div style="font-size:15px;color:#5B607A;margin-top:6px;line-height:1.35">Fundamentos de Transparência, Ouvidoria e Participação Social · 4.2</div>
+</div>
+<div style="display:flex;gap:8px">
+<div style="flex:1;height:36px;border-radius:18px;background:#E4E5FB;color:#2F2A9E;font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center">Estudo</div>
+<div style="flex:1;height:36px;border-radius:18px;background:#fff;border:1px solid #E3E5F3;color:#5B607A;font-size:14px;display:flex;align-items:center;justify-content:center">Teste</div>
+<div style="flex:1;height:36px;border-radius:18px;background:#fff;border:1px solid #E3E5F3;color:#5B607A;font-size:14px;display:flex;align-items:center;justify-content:center">Recorde</div>
+<div style="flex:1;height:36px;border-radius:18px;background:#fff;border:1px solid #E3E5F3;color:#5B607A;font-size:14px;display:flex;align-items:center;justify-content:center">Descanso</div>
+</div>
+<div style="position:relative;width:240px;height:240px;margin:0 auto">
+<svg width="240" height="240" viewBox="0 0 240 240" aria-hidden="true">
+<circle cx="120" cy="120" r="104" fill="none" stroke="#E3E5F3" stroke-width="10"/>
+<circle cx="120" cy="120" r="104" fill="none" style="stroke:{{accent}}" stroke-width="10" stroke-linecap="round" stroke-dasharray="98.7 554.8" transform="rotate(-90 120 120)"/>
+<circle cx="204.7" cy="59.6" r="9" fill="#FFD84D" stroke="#F5F6FA" stroke-width="3"/>
+</svg>
+<div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+<div class="d" style="font-weight:700;font-size:56px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums">38:12</div>
+<div style="font-size:14px;color:#5B607A">restantes de 45 min</div>
+</div>
+</div>
+<div style="background:#fff;border:1px solid #E3E5F3;border-radius:16px;padding:16px">
+<div style="font-size:13px;font-weight:600;color:#5B607A;letter-spacing:.06em;text-transform:uppercase">Nesta fase</div>
+<div style="font-size:15px;line-height:1.4;margin-top:6px">Estude o assunto e produza seu próprio resumo à mão. Ao final, envie ao menos uma foto dele.</div>
+</div>
+<div style="display:flex;gap:12px;margin-top:auto">
+<button style="flex:1;height:52px;border-radius:14px;border:1px solid #D9DCEB;background:#fff;color:#14162B;font-size:16px;font-weight:600">Pausar</button>
+<button style="flex:2;height:52px;border-radius:14px;border:none;color:#fff;font-size:16px;font-weight:600;background:{{accent}}">Ir para o teste</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4338CA"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#4338CA' };
+}
+}
+</script>
+</body>
+</html>

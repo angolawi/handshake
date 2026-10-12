@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Web · Disciplina</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input{font:inherit}
+button{cursor:pointer}
+.d{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif}
+.lab{font-size:13px;font-weight:600;color:#5B607A;letter-spacing:.06em;text-transform:uppercase}
+.hl{background:linear-gradient(to top,#FFD84D 0,#FFD84D 38%,transparent 38%)}
+.card{background:#fff;border:1px solid #E3E5F3;border-radius:16px}
+.bar{height:6px;border-radius:3px;background:#E3E5F3;overflow:hidden}
+.bar i{display:block;height:100%;background:#3FA66B}
+.stb{width:48px;height:48px;border-radius:14px;border:1px solid #D9DCEB;background:#fff;font-size:24px;line-height:1;color:#14162B}
+.fld{height:48px;border-radius:12px;border:1px solid #D9DCEB;background:#fff;padding:0 14px;font-size:16px;color:#14162B;width:100%;box-sizing:border-box}
+.sb{width:232px;flex:none;background:#fff;border-right:1px solid #E3E5F3;padding:28px 16px;display:flex;flex-direction:column;gap:4px;box-sizing:border-box}
+.nv{background:none;border:none;height:44px;text-align:left;font-size:15px;color:#5B607A;padding:0 12px;border-radius:10px}
+.nv.on{color:#14162B;font-weight:600;background:#F0F1FA}
+.tr{display:grid;grid-template-columns:minmax(180px,1fr) 56px 70px 168px;gap:6px;align-items:center;padding:10px 16px;border-top:1px solid #EEF0F7}
+.go{background:#FFF2CC}
+.sel{outline:2px solid #4338CA;outline-offset:-2px}
+.dtc{font-size:12px;color:#3A3F5C;text-align:center}
+.q{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.sh{font-size:12px;font-weight:600;color:#5B607A;text-align:center}
+</style>
+</helmet>
+<div style="display:flex;min-height:100%;background:#F5F6FA;color:#14162B;font-family:'Figtree',system-ui,sans-serif"><div class="sb">
+<div style="display:flex;align-items:center;gap:8px;padding:0 12px 24px">
+<svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13.6 A12 12 0 0 1 24 34.4 A12 12 0 0 1 24 13.6 Z" fill="#FFD84D"/><circle cx="18" cy="24" r="12" fill="none" style="stroke:{{accent}}" stroke-width="4"/><circle cx="30" cy="24" r="12" fill="none" stroke="#8B86E8" stroke-width="4"/></svg>
+<span class="d" style="font-weight:700;font-size:24px;letter-spacing:-0.02em">hand<span class="hl">shake</span></span>
+</div>
+<button class="nv">Hoje</button><button class="nv on"><span class="hl">Edital</span></button><button class="nv">Controle</button><button class="nv">Revisões</button>
+</div>
+<div style="flex:1;min-width:0;padding:40px 48px;display:flex;flex-direction:column;gap:24px">
+<div>
+<div class="lab">Disciplina · Básicas</div>
+<div class="d" style="font-weight:700;font-size:36px;letter-spacing:-0.02em;margin-top:4px">Estado, Democracia, Direitos e Ciência Política</div>
+</div>
+<div style="display:flex;gap:8px">
+<button aria-current="true" style="height:44px;padding:0 22px;border-radius:22px;border:none;background:#E4E5FB;color:#2F2A9E;font-weight:600;font-size:15px">Fase 1 · atual</button>
+<button disabled aria-label="Fase 2, bloqueada" style="padding:0 20px;border-radius:22px;border:1px dashed #C9CCE3;background:#F0F1F5;color:#8A8FA8;font-size:15px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:not-allowed;height:44px"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Fase 2</button>
+<button disabled aria-label="Fase 3, bloqueada" style="padding:0 20px;border-radius:22px;border:1px dashed #C9CCE3;background:#F0F1F5;color:#8A8FA8;font-size:15px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:not-allowed;height:44px"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Fase 3</button>
+</div>
+<div style="font-size:14px;color:#5B607A;margin-top:-12px">As fases seguintes são liberadas quando todos os tópicos forem cumpridos, ou pelo mentor.</div>
+<div style="display:flex;gap:24px;align-items:flex-start">
+<div class="card" style="flex:1;min-width:0;overflow:hidden">
+<div class="tr" style="border-top:none;padding-top:14px;padding-bottom:8px"><div class="lab">Conteúdo</div><div class="sh">Início</div><div class="sh">Conclusão</div><div class="sh" style="text-align:right">Questões</div></div>
+<div class="tr" style="background:#D3E3F5;border-top:1px solid #BCD3EE;padding-top:12px;padding-bottom:12px"><div style="font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#1F3F66;line-height:1.3">Estado, Democracia, Direitos e Ciência Política</div><div></div><div></div><div class="q"><div class="bar" style="width:44px"><i style="width:87%"></i></div><span style="font-size:13px">13/15</span><b style="font-size:13px;color:#17603A;min-width:36px;text-align:right">87%</b></div></div>
+<div class="tr go"><div style="padding-left:0px;font-size:14px;font-weight:600;line-height:1.3">1 Estado e legitimidade.</div><div class="dtc">10/10</div><div class="dtc"></div><div class="q" style="color:#8A8FA8;font-size:13px">—</div></div>
+<div class="tr go"><div style="padding-left:18px;font-size:14px;font-weight:400;line-height:1.3">1.1 Estado, governo e administração.</div><div class="dtc">10/10</div><div class="dtc"></div><div class="q"><div class="bar" style="width:44px"><i style="width:80%"></i></div><span style="font-size:13px">4/5</span><b style="font-size:13px;color:#17603A;min-width:36px;text-align:right">80%</b></div></div>
+<div class="tr go"><div style="padding-left:36px;font-size:14px;font-weight:400;line-height:1.3">1.1.1 Autoridade, legitimidade e poder.</div><div class="dtc">10/10</div><div class="dtc"></div><div class="q"><div class="bar" style="width:44px"><i style="width:100%"></i></div><span style="font-size:13px">5/5</span><b style="font-size:13px;color:#17603A;min-width:36px;text-align:right">100%</b></div></div>
+<div class="tr go sel"><div style="padding-left:36px;font-size:14px;font-weight:400;line-height:1.3">1.1.2 Interesse público, pluralismo e conflitos distributivos.</div><div class="dtc">10/10</div><div class="dtc"></div><div class="q"><div class="bar" style="width:44px"><i style="width:80%"></i></div><span style="font-size:13px">4/5</span><b style="font-size:13px;color:#17603A;min-width:36px;text-align:right">80%</b></div></div>
+<div class="tr"><div style="padding-left:0px;font-size:14px;font-weight:600;line-height:1.3">2 Democracia e representação.</div><div class="dtc"></div><div class="dtc"></div><div class="q" style="color:#8A8FA8;font-size:13px">—</div></div>
+<div class="tr"><div style="padding-left:18px;font-size:14px;font-weight:400;line-height:1.3">2.1 Representação e participação.</div><div class="dtc"></div><div class="dtc"></div><div class="q" style="color:#8A8FA8;font-size:13px">—</div></div>
+<div class="tr"><div style="padding-left:36px;font-size:14px;font-weight:400;line-height:1.3">2.1.1 Responsabilização democrática.</div><div class="dtc"></div><div class="dtc"></div><div class="q" style="color:#8A8FA8;font-size:13px">—</div></div>
+<div class="tr"><div style="padding-left:36px;font-size:14px;font-weight:400;line-height:1.3">2.1.2 Relações entre Executivo, Legislativo e Judiciário.</div><div class="dtc"></div><div class="dtc"></div><div class="q" style="color:#8A8FA8;font-size:13px">—</div></div>
+<div class="tr"><div style="padding-left:36px;font-size:14px;font-weight:400;line-height:1.3">2.1.3 Governabilidade e controles recíprocos.</div><div class="dtc"></div><div class="dtc"></div><div class="q" style="color:#8A8FA8;font-size:13px">—</div></div>
+<div class="tr"><div style="padding-left:0px;font-size:14px;font-weight:600;line-height:1.3">3 Federalismo e capacidades estatais.</div><div class="dtc"></div><div class="dtc"></div><div class="q" style="color:#8A8FA8;font-size:13px">—</div></div>
+<div class="tr"><div style="padding-left:18px;font-size:14px;font-weight:400;line-height:1.3">3.1 Autonomia, coordenação e cooperação federativa.</div><div class="dtc"></div><div class="dtc"></div><div class="q" style="color:#8A8FA8;font-size:13px">—</div></div>
+<div class="tr"><div style="padding-left:36px;font-size:14px;font-weight:400;line-height:1.3">3.1.1 Capacidades administrativas e políticas.</div><div class="dtc"></div><div class="dtc"></div><div class="q" style="color:#8A8FA8;font-size:13px">—</div></div>
+</div>
+<div class="card" style="width:340px;flex:none;padding:20px;display:flex;flex-direction:column;gap:16px">
+<div>
+<div class="d" style="font-weight:700;font-size:22px;letter-spacing:-0.01em">Registrar questões</div>
+<div style="font-size:13px;color:#5B607A;margin-top:4px;line-height:1.3">Estado, Democracia, Direitos e Ciência Política · Fase 1</div><div style="font-size:15px;font-weight:600;margin-top:4px;line-height:1.3">1.1.2 Interesse público, pluralismo e conflitos distributivos.</div>
+</div>
+<div style="display:flex;gap:12px">
+<div style="flex:1;min-width:0"><label class="lab" for="q-certas" style="display:block;margin-bottom:6px">Certas</label><input id="q-certas" class="fld" inputmode="numeric" value="1" style="height:56px;font-size:24px;font-weight:600;text-align:center;font-variant-numeric:tabular-nums"></div><div style="flex:1;min-width:0"><label class="lab" for="q-resolvidas" style="display:block;margin-bottom:6px">Resolvidas</label><input id="q-resolvidas" class="fld" inputmode="numeric" value="2" style="height:56px;font-size:24px;font-weight:600;text-align:center;font-variant-numeric:tabular-nums"></div>
+</div>
+<div>
+<div style="display:flex;align-items:baseline;justify-content:space-between"><div class="d" style="font-weight:700;font-size:28px">50%</div><div style="font-size:13px;color:#5B607A">neste lançamento</div></div>
+<div class="bar" style="margin-top:6px"><i style="width:50%"></i></div>
+<div style="font-size:13px;color:#5B607A;margin-top:6px">Certas não pode superar resolvidas.</div>
+</div>
+<div>
+<div class="lab" style="margin-bottom:6px">Data</div>
+<input class="fld" value="10/10/2026" aria-label="Data do lançamento">
+</div>
+<div style="border-top:1px solid #EEF0F7;padding-top:8px">
+<div style="display:flex;justify-content:space-between;align-items:center;min-height:36px;font-size:14px"><span>10/10 · Sessão de estudo</span><span style="font-weight:600">3/3</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;min-height:36px;font-size:14px"><span>10/10 · Lançamento manual</span><span style="font-weight:600">1/2</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;min-height:36px;font-size:14px;border-top:1px solid #EEF0F7"><span style="color:#5B607A">Total do tópico</span><span style="font-weight:700;color:#17603A">4/5 · 80%</span></div>
+</div>
+<button style="height:52px;border-radius:14px;border:none;color:#fff;font-size:16px;font-weight:600;background:{{accent}}">Salvar lançamento</button>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4338CA"},"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#4338CA' };
+}
+}
+</script>
+</body>
+</html>

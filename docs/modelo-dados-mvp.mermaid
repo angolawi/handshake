@@ -1,0 +1,218 @@
+erDiagram
+    usuario {
+        uuid id PK
+        string nome
+        string email
+        string papel "mentor ou mentorado"
+        timestamp excluido_em
+    }
+    convite {
+        uuid id PK
+        uuid mentor_id FK
+        string email
+        string token
+        timestamp expira_em
+        timestamp aceito_em
+    }
+    mentorado {
+        uuid id PK
+        uuid usuario_id FK
+        uuid mentor_id FK "um unico mentor"
+        date fim_mentoria "base da retencao das fotos"
+        int dia_corte_semana "dia da reuniao"
+        string fuso
+        json duracoes_override "nulo = padrao 45-10-5"
+        timestamp consentimento_em
+    }
+    auditoria {
+        uuid id PK
+        uuid autor_id FK
+        uuid mentorado_id FK
+        string entidade
+        string campo
+        string valor_anterior
+        string valor_novo
+        timestamp em
+    }
+    edital {
+        uuid id PK
+        uuid mentor_id FK
+        string nome
+        string banca "CEBRASPE ou FGV"
+        int versao
+    }
+    grupo {
+        uuid id PK
+        uuid edital_id FK
+        string nome "ex basicas, complementares"
+        int ordem
+        int questoes_prova
+        int peso "uso no ciclo a definir"
+    }
+    disciplina {
+        uuid id PK
+        uuid edital_id FK
+        string nome
+        uuid grupo_id FK
+        string tipo "decoreba ou raciocinio"
+        int ordem
+        timestamp arquivado_em
+    }
+    topico {
+        uuid id PK
+        uuid disciplina_id FK
+        uuid pai_id FK "autorreferencia"
+        string numeracao "ex 4.2.1"
+        string texto
+        int ordem
+        timestamp arquivado_em
+    }
+    matricula {
+        uuid id PK
+        uuid mentorado_id FK
+        uuid edital_id FK
+        timestamp atribuido_em
+        timestamp removido_em
+    }
+    ciclo {
+        uuid id PK
+        uuid matricula_id FK
+        int numero
+        date inicio
+        int duracao_dias "padrao 30"
+        int slots_por_dia
+    }
+    ciclo_slot {
+        uuid id PK
+        uuid ciclo_id FK
+        uuid disciplina_id FK
+        int ordem
+    }
+    rodada {
+        uuid id PK
+        uuid ciclo_id FK
+        int numero
+        string cor "1 de 10, nula ate a primeira escolha"
+    }
+    sessao {
+        uuid id PK
+        uuid matricula_id FK
+        uuid slot_id FK
+        uuid topico_id FK
+        int fase "1, 2 ou 3"
+        string status
+        timestamp inicio
+        timestamp fim
+        json duracoes_aplicadas "copia no inicio da sessao"
+    }
+    sessao_etapa {
+        uuid id PK
+        uuid sessao_id FK
+        string tipo "estudo, teste, recorde, descanso"
+        timestamp inicio
+        timestamp fim
+        int segundos_pausados
+    }
+    lancamento_questao {
+        uuid id PK
+        uuid matricula_id FK
+        uuid topico_id FK
+        uuid sessao_id FK "opcional, nulo = manual"
+        int fase
+        date data
+        int certas
+        int resolvidas
+        string origem "sessao ou manual"
+    }
+    resumo_foto {
+        uuid id PK
+        uuid sessao_id FK
+        string storage_key
+        timestamp enviada_em
+        date expira_em "igual a fim_mentoria"
+        timestamp excluida_em
+    }
+    comentario_resumo {
+        uuid id PK
+        uuid foto_id FK
+        uuid autor_id FK
+        string texto
+        timestamp em
+    }
+    progresso_topico {
+        uuid id PK
+        uuid matricula_id FK
+        uuid topico_id FK
+        int fase
+        date inicio
+        date conclusao
+    }
+    fase_disciplina {
+        uuid id PK
+        uuid matricula_id FK
+        uuid disciplina_id FK
+        int fase_atual
+        uuid override_por FK
+        timestamp override_em
+    }
+    controle_celula {
+        uuid id PK
+        uuid rodada_id FK
+        uuid slot_id FK
+        date data
+        string cor "igual a cor da rodada"
+        timestamp feito_em
+    }
+    controle_dia {
+        uuid id PK
+        uuid mentorado_id FK
+        date data
+        boolean revisao_noturna
+    }
+    revisao_mensal {
+        uuid id PK
+        uuid mentorado_id FK
+        string mes_referencia
+        timestamp feita_em
+    }
+
+    usuario ||--o{ convite : "envia"
+    usuario ||--o| mentorado : "perfil"
+    usuario ||--o{ mentorado : "mentor de"
+    usuario ||--o{ edital : "cria"
+    usuario ||--o{ auditoria : "autor"
+    usuario ||--o{ comentario_resumo : "autor"
+
+    mentorado ||--o{ matricula : "tem"
+    mentorado ||--o{ auditoria : "alvo"
+    mentorado ||--o{ controle_dia : "registra"
+    mentorado ||--o{ revisao_mensal : "faz"
+
+    edital ||--o{ grupo : "divide em"
+    grupo ||--o{ disciplina : "reune"
+    edital ||--o{ matricula : "atribuido"
+    disciplina ||--o{ topico : "contem"
+    topico ||--o{ topico : "pai de"
+
+    matricula ||--o{ ciclo : "tem"
+    matricula ||--o{ sessao : "executa"
+    matricula ||--o{ progresso_topico : "acompanha"
+    matricula ||--o{ fase_disciplina : "acompanha"
+
+    ciclo ||--o{ ciclo_slot : "sequencia"
+    ciclo ||--o{ rodada : "voltas"
+    disciplina ||--o{ ciclo_slot : "ocupa"
+    ciclo_slot ||--o{ sessao : "gera"
+    ciclo_slot ||--o{ controle_celula : "marca"
+    rodada ||--o{ controle_celula : "agrupa"
+
+    topico ||--o{ sessao : "estudado em"
+    topico ||--o{ lancamento_questao : "questoes de"
+    matricula ||--o{ lancamento_questao : "acumula"
+    topico ||--o{ progresso_topico : "progresso de"
+    disciplina ||--o{ fase_disciplina : "fase de"
+
+    sessao ||--o{ sessao_etapa : "etapas"
+    sessao ||--o{ lancamento_questao : "origina"
+    sessao ||--o{ resumo_foto : "resumos"
+    resumo_foto ||--o{ comentario_resumo : "feedback"

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Tela inicial · Quantum</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;cursor:pointer}
+.d{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif}
+.hl{background:linear-gradient(to top,#FFD84D 0,#FFD84D 34%,transparent 34%)}
+.card{background:#fff;border:1px solid #E3E5F3;border-radius:16px}
+.lab{font-size:13px;font-weight:600;color:#5B607A;letter-spacing:.06em;text-transform:uppercase}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#F5F6FA;color:#14162B;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;padding:64px 24px 40px">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;text-align:center">
+<div style="width:200px;height:200px;border-radius:100px;background:#fff;border:1px solid #E3E5F3;display:flex;align-items:center;justify-content:center"><svg width="132" height="132" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 24 L24 6 A18 18 0 0 1 42 24 Z" fill="#FFD84D"/><circle cx="24" cy="24" r="18" fill="none" stroke="#4338CA" stroke-width="4"/></svg></div>
+<div style="display:flex;flex-direction:column;gap:12px;align-items:center"><span class="d" style="font-weight:700;font-size:44px;letter-spacing:-0.03em;line-height:1">quant<span class="hl">um</span></span><div style="font-size:18px;color:#5B607A;line-height:1.35">Uma hora, um foco.</div></div>
+</div>
+<div style="width:100%;display:flex;flex-direction:column;gap:12px">
+<button style="height:52px;border-radius:14px;border:none;color:#fff;font-size:16px;font-weight:600;background:{{accent}}">Entrar</button>
+<button style="height:52px;border-radius:14px;border:1px solid #D9DCEB;background:#fff;color:#14162B;font-size:16px;font-weight:600">Tenho um convite</button>
+<div style="text-align:center;font-size:13px;color:#5B607A;margin-top:6px">Mentoria para concursos de TI</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4338CA"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#4338CA' };
+}
+}
+</script>
+</body>
+</html>

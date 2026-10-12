@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Mentor · Planejar ciclo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.d{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif}
+.lab{font-size:13px;font-weight:600;color:#5B607A;letter-spacing:.06em;text-transform:uppercase}
+.hl{background:linear-gradient(to top,#FFD84D 0,#FFD84D 38%,transparent 38%)}
+.card{background:#fff;border:1px solid #E3E5F3;border-radius:16px}
+.chip{display:inline-block;padding:3px 10px;border-radius:9px;font-size:12px;font-weight:500;white-space:nowrap}
+.dec{background:#D3E3F5;color:#1F3F66}
+.rac{background:#FFF2CC;color:#6B4F00}
+.f1{background:#EEEFF6;color:#3A3F5C}
+.f2{background:#FDE8D2;color:#8A3F05}
+.ok{background:#CFEBD8;color:#17603A}
+.wn{background:#FFE9B8;color:#7A4B00}
+.gr{background:#BFE5C8;color:#17603A}
+.sb{width:232px;flex:none;background:#fff;border-right:1px solid #E3E5F3;padding:28px 16px;display:flex;flex-direction:column;gap:4px;box-sizing:border-box}
+.nv{background:none;border:none;height:44px;text-align:left;font-size:15px;color:#5B607A;padding:0 12px;border-radius:10px}
+.nv.on{color:#14162B;font-weight:600;background:#F0F1FA}
+.btn{height:44px;padding:0 20px;border-radius:12px;border:1px solid #D9DCEB;background:#fff;font-weight:600;font-size:15px;color:#14162B}
+.pri{border:none;color:#fff;background:{{accent}}}
+.fld{height:44px;border-radius:12px;border:1px solid #D9DCEB;background:#fff;padding:0 14px;font-size:15px;color:#14162B;width:100%;box-sizing:border-box}
+.bar{height:6px;border-radius:3px;background:#E3E5F3;overflow:hidden}
+.bar i{display:block;height:100%;background:#3FA66B}
+.gc{display:grid;grid-template-columns:56px repeat(3,minmax(0,1fr));gap:8px;align-items:center;margin-bottom:8px}.sl{display:flex;align-items:center;gap:8px;padding:12px;border-radius:12px;min-height:56px;box-sizing:border-box}.sl.dec{background:#D3E3F5;color:#1F3F66}.sl.rac{background:#FFF2CC;color:#6B4F00}
+</style>
+</helmet>
+<div style="display:flex;min-height:100%;background:#F5F6FA;color:#14162B;font-family:'Figtree',system-ui,sans-serif">
+<div class="sb">
+<div style="display:flex;align-items:center;gap:8px;padding:0 12px 4px">
+<svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13.6 A12 12 0 0 1 24 34.4 A12 12 0 0 1 24 13.6 Z" fill="#FFD84D"/><circle cx="18" cy="24" r="12" fill="none" style="stroke:{{accent}}" stroke-width="4"/><circle cx="30" cy="24" r="12" fill="none" stroke="#8B86E8" stroke-width="4"/></svg>
+<span class="d" style="font-weight:700;font-size:24px;letter-spacing:-0.02em">hand<span class="hl">shake</span></span>
+</div>
+<div style="padding:0 12px 20px;font-size:13px;color:#5B607A">Visão do mentor</div>
+<button class="nv">Mentorados</button>
+<button class="nv">Editais</button>
+<button class="nv on"><span class="hl">Ciclos</span></button>
+<button class="nv">Convites</button>
+</div>
+<div style="flex:1;min-width:0;padding:40px 48px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;justify-content:space-between;align-items:flex-end"><div><div class="d" style="font-weight:700;font-size:36px;letter-spacing:-0.02em">Planejar ciclo</div><div style="font-size:16px;color:#5B607A;margin-top:2px">Marina R. · Ciclo 02</div></div><div style="display:flex;gap:10px"><button class="btn">Salvar rascunho</button><button class="btn pri">Publicar para Marina</button></div></div><div class="card" style="padding:16px 20px;display:flex;gap:16px;align-items:flex-end"><div style="flex:1;min-width:0"><div class="lab" style="margin-bottom:6px">Edital</div><input class="fld" value="Concurso CGU" aria-label="Edital"></div><div style="flex:1;min-width:0"><div class="lab" style="margin-bottom:6px">Início</div><input class="fld" value="08/11/2026" aria-label="Início"></div><div style="flex:1;min-width:0"><div class="lab" style="margin-bottom:6px">Slots por dia</div><input class="fld" value="3" aria-label="Slots por dia"></div><div style="flex:1;min-width:0"><div class="lab" style="margin-bottom:6px">Duração (dias)</div><input class="fld" value="30" aria-label="Duração"></div><button class="btn" style="flex:none">Gerar nova sugestão</button></div><div style="display:flex;gap:16px;align-items:flex-start"><div class="card" style="flex:1.6;min-width:0;padding:18px 20px"><div class="d" style="font-weight:700;font-size:20px;margin-bottom:4px">Sequência do ciclo</div><div style="font-size:14px;color:#5B607A;margin-bottom:12px">Arraste para reordenar. A sequência se repete até o fim dos 30 dias.</div><div class="gc"><div></div><div class="lab" style="text-align:center">0 a 1h</div><div class="lab" style="text-align:center">0 a 1h</div><div class="lab" style="text-align:center">0 a 1h</div></div><div class="gc"><div style="font-weight:600;font-size:15px">Dia 1</div><div class="sl dec"><span style="color:#5B607A;font-size:14px;letter-spacing:2px" aria-hidden="true">⋮⋮</span><span style="font-size:15px;font-weight:600;line-height:1.3">Estado, Democracia, Direitos</span></div><div class="sl rac"><span style="color:#5B607A;font-size:14px;letter-spacing:2px" aria-hidden="true">⋮⋮</span><span style="font-size:15px;font-weight:600;line-height:1.3">Fundamentos de Evidências</span></div><div class="sl dec"><span style="color:#5B607A;font-size:14px;letter-spacing:2px" aria-hidden="true">⋮⋮</span><span style="font-size:15px;font-weight:600;line-height:1.3">Fundamentos de Auditoria</span></div></div><div class="gc"><div style="font-weight:600;font-size:15px">Dia 2</div><div class="sl rac"><span style="color:#5B607A;font-size:14px;letter-spacing:2px" aria-hidden="true">⋮⋮</span><span style="font-size:15px;font-weight:600;line-height:1.3">Persistência, Integração</span></div><div class="sl dec"><span style="color:#5B607A;font-size:14px;letter-spacing:2px" aria-hidden="true">⋮⋮</span><span style="font-size:15px;font-weight:600;line-height:1.3">Fundamentos de Transparência</span></div><div class="sl dec"><span style="color:#5B607A;font-size:14px;letter-spacing:2px" aria-hidden="true">⋮⋮</span><span style="font-size:15px;font-weight:600;line-height:1.3">Sociedade brasileira, Desigualdades</span></div></div><div class="gc"><div style="font-weight:600;font-size:15px">Dia 3</div><div class="sl dec"><span style="color:#5B607A;font-size:14px;letter-spacing:2px" aria-hidden="true">⋮⋮</span><span style="font-size:15px;font-weight:600;line-height:1.3">Fundamentos de Governança</span></div><div class="sl rac"><span style="color:#5B607A;font-size:14px;letter-spacing:2px" aria-hidden="true">⋮⋮</span><span style="font-size:15px;font-weight:600;line-height:1.3">Desenvolvimento Seguro</span></div><div class="sl dec"><span style="color:#5B607A;font-size:14px;letter-spacing:2px" aria-hidden="true">⋮⋮</span><span style="font-size:15px;font-weight:600;line-height:1.3">Fundamentos de Direito Público</span></div></div></div><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px"><div class="card" style="padding:18px 20px"><div class="d" style="font-weight:700;font-size:20px;margin-bottom:8px">Equilíbrio</div><span class="chip dec">6 decoreba</span> <span class="chip rac">3 raciocínio</span><div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:#FFF4D6;font-size:13px;line-height:1.4">Dia 2 tem duas disciplinas decoreba em sequência (Transparência e Sociedade). Você pode manter assim.</div></div><div class="card" style="padding:18px 20px"><div class="d" style="font-weight:700;font-size:20px;margin-bottom:4px">Fora do ciclo</div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #EEF0F7"><div><div style="font-size:14px;font-weight:600;line-height:1.3">Ética Pública e Responsabilidade Profissional</div><span class="chip dec" style="margin-top:4px">decoreba</span> </div><button class="btn" style="height:36px;padding:0 14px;font-size:14px">Adicionar</button></div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #EEF0F7"><div><div style="font-size:14px;font-weight:600;line-height:1.3">Administração Pública e Fundamentos de Políticas Públicas</div><span class="chip dec" style="margin-top:4px">decoreba</span> </div><button class="btn" style="height:36px;padding:0 14px;font-size:14px">Adicionar</button></div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #EEF0F7"><div><div style="font-size:14px;font-weight:600;line-height:1.3">Engenharia de Software e Programação</div><span class="chip rac" style="margin-top:4px">raciocínio</span> <span class="chip f2">Fase 2</span></div><button class="btn" style="height:36px;padding:0 14px;font-size:14px">Adicionar</button></div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #EEF0F7"><div><div style="font-size:14px;font-weight:600;line-height:1.3">Arquitetura e Integração de Sistemas</div><span class="chip rac" style="margin-top:4px">raciocínio</span> <span class="chip f2">Fase 2</span></div><button class="btn" style="height:36px;padding:0 14px;font-size:14px">Adicionar</button></div></div></div></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4338CA"},"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#4338CA' };
+}
+}
+</script>
+</body>
+</html>

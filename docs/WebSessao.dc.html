@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Web · Sessão</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;cursor:pointer}
+.d{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif}
+.lab{font-size:13px;font-weight:600;color:#5B607A;letter-spacing:.06em;text-transform:uppercase}
+.pd,.dec{background:#D3E3F5;color:#1F3F66}
+.pr,.rac{background:#FFF2CC;color:#6B4F00}
+.hl{background:linear-gradient(to top,#FFD84D 0,#FFD84D 38%,transparent 38%)}
+.sb{width:232px;flex:none;background:#fff;border-right:1px solid #E3E5F3;padding:28px 16px;display:flex;flex-direction:column;gap:4px;box-sizing:border-box}
+.nv{background:none;border:none;height:44px;text-align:left;font-size:15px;color:#5B607A;padding:0 12px;border-radius:10px}
+.nv.on{color:#14162B;font-weight:600;background:#F0F1FA}
+.card{background:#fff;border:1px solid #E3E5F3;border-radius:16px}
+.chip{display:inline-block;padding:3px 10px;border-radius:9px;font-size:12px;font-weight:500}
+.stp{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:12px;border:1px solid #E3E5F3;background:#fff;font-size:15px}
+.stp.on{background:#E4E5FB;border-color:#E4E5FB;color:#2F2A9E;font-weight:600}
+</style>
+</helmet>
+<div style="min-height:100%;background:#F5F6FA;color:#14162B;font-family:'Figtree',system-ui,sans-serif">
+<div style="max-width:1080px;margin:0 auto;padding:32px 48px;display:flex;flex-direction:column;gap:32px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="display:flex;align-items:center;gap:8px">
+<svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13.6 A12 12 0 0 1 24 34.4 A12 12 0 0 1 24 13.6 Z" fill="#FFD84D"/><circle cx="18" cy="24" r="12" fill="none" style="stroke:{{accent}}" stroke-width="4"/><circle cx="30" cy="24" r="12" fill="none" stroke="#8B86E8" stroke-width="4"/></svg>
+<span class="d" style="font-weight:700;font-size:24px;letter-spacing:-0.02em">hand<span class="hl">shake</span></span>
+</div>
+<button aria-label="Fechar sessão" style="width:44px;height:44px;border-radius:22px;border:1px solid #D9DCEB;background:#fff;font-size:22px;line-height:1">×</button>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:48px;align-items:start">
+<div class="card" style="padding:40px;display:flex;flex-direction:column;align-items:center;gap:24px">
+<div style="position:relative;width:280px;height:280px">
+<svg width="280" height="280" viewBox="0 0 280 280" aria-hidden="true">
+<circle cx="140" cy="140" r="122" fill="none" stroke="#E3E5F3" stroke-width="12"/>
+<circle cx="140" cy="140" r="122" fill="none" style="stroke:{{accent}}" stroke-width="12" stroke-linecap="round" stroke-dasharray="115.7 650.8" transform="rotate(-90 140 140)"/>
+<circle cx="239.3" cy="69.2" r="10" fill="#FFD84D" stroke="#fff" stroke-width="3"/>
+</svg>
+<div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+<div class="d" style="font-weight:700;font-size:64px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums">38:12</div>
+<div style="font-size:15px;color:#5B607A">restantes de 45 min</div>
+</div>
+</div>
+<div style="display:flex;gap:12px;width:100%">
+<button style="flex:1;height:52px;border-radius:14px;border:1px solid #D9DCEB;background:#fff;font-size:16px;font-weight:600;color:#14162B">Pausar</button>
+<button style="flex:2;height:52px;border-radius:14px;border:none;color:#fff;font-size:16px;font-weight:600;background:{{accent}}">Ir para o teste</button>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:24px">
+<div>
+<div class="lab">Fase 1 · Decoreba</div>
+<div class="d" style="font-weight:700;font-size:32px;line-height:1.15;margin-top:8px;letter-spacing:-0.01em">Recorrências em manifestações como sinais de problemas</div>
+<div style="font-size:16px;color:#5B607A;margin-top:6px">Fundamentos de Transparência, Ouvidoria e Participação Social · 4.2</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div class="stp on"><span>Estudo</span><span>45 min</span></div>
+<div class="stp"><span>Teste</span><span style="color:#5B607A">10 min</span></div>
+<div class="stp"><span>Recorde</span><span style="color:#5B607A">5 min</span></div>
+<div class="stp"><span>Descanso</span><span style="color:#5B607A">15 min</span></div>
+</div>
+<div class="card" style="padding:16px 20px">
+<div class="lab">Nesta fase</div>
+<div style="font-size:15px;line-height:1.45;margin-top:6px">Estude o assunto e produza seu próprio resumo à mão. Ao final, envie ao menos uma foto dele.</div>
+</div>
+<div style="border:2px dashed #C9CCE3;border-radius:16px;padding:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff">
+<div><div style="font-size:16px;font-weight:600">Foto do resumo</div><div style="font-size:14px;color:#5B607A;margin-top:2px">0 de 1 obrigatória · não fotografe documentos pessoais</div></div>
+<button style="height:44px;padding:0 20px;border-radius:12px;border:1px solid #D9DCEB;background:#fff;font-weight:600;font-size:15px;color:{{accent}}">Enviar foto</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4338CA"},"$preview":{"width":1280,"height":860}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#4338CA' };
+}
+}
+</script>
+</body>
+</html>

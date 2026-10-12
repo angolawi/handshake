@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Web · Controle</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font:inherit;cursor:pointer}
+.d{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif}
+.lab{font-size:13px;font-weight:600;color:#5B607A;letter-spacing:.06em;text-transform:uppercase}
+.pd,.dec{background:#D3E3F5;color:#1F3F66}
+.pr,.rac{background:#FFF2CC;color:#6B4F00}
+.hl{background:linear-gradient(to top,#FFD84D 0,#FFD84D 38%,transparent 38%)}
+.sb{width:232px;flex:none;background:#fff;border-right:1px solid #E3E5F3;padding:28px 16px;display:flex;flex-direction:column;gap:4px;box-sizing:border-box}
+.nv{background:none;border:none;height:44px;text-align:left;font-size:15px;color:#5B607A;padding:0 12px;border-radius:10px}
+.nv.on{color:#14162B;font-weight:600;background:#F0F1FA}
+.card{background:#fff;border:1px solid #E3E5F3;border-radius:16px}
+.chip{display:inline-block;padding:3px 10px;border-radius:9px;font-size:12px;font-weight:500}
+.g{display:grid;grid-template-columns:236px repeat(30,minmax(22px,1fr));gap:2px;margin-bottom:2px}
+.lb{min-height:40px;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:13px;font-weight:600;line-height:1.2;box-sizing:border-box}
+.nt{background:#14162B;color:#fff}
+.ms{background:#6FA8DC;color:#14162B}
+.cl{height:40px;border-radius:6px;background:#fff;border:1px solid #ECEDF5;box-sizing:border-box;display:flex;align-items:center;justify-content:center}
+.dn{background:#8EC5FF;border-color:#8EC5FF}
+.hd{height:60px;border-radius:6px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;box-sizing:border-box;background:#fff;border:1px solid #ECEDF5}
+.hd span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;font-weight:600;white-space:nowrap}
+.td{outline:2px solid #14162B;outline-offset:-2px}
+.bx{border:2px solid #6FA8DC;background:#fff}
+.sw{width:36px;height:36px;border-radius:18px;border:none;padding:0}
+.lg{display:flex;align-items:center;gap:6px;font-size:13px;color:#3A3F5C}
+.sq{width:14px;height:14px;border-radius:4px;display:inline-block}
+.wk{background:#E4E6EE;border-color:#E4E6EE}
+.wk.dn{background:#8EC5FF;border-color:#8EC5FF}
+.wk.bx{background:#fff;border-color:#6FA8DC}
+.mt{background:#BFE5C8;border-color:#7FC48E;color:#17603A}
+</style>
+</helmet>
+<div style="display:flex;min-height:100%;background:#F5F6FA;color:#14162B;font-family:'Figtree',system-ui,sans-serif">
+<div class="sb">
+<div style="display:flex;align-items:center;gap:8px;padding:0 12px 24px">
+<svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13.6 A12 12 0 0 1 24 34.4 A12 12 0 0 1 24 13.6 Z" fill="#FFD84D"/><circle cx="18" cy="24" r="12" fill="none" style="stroke:{{accent}}" stroke-width="4"/><circle cx="30" cy="24" r="12" fill="none" stroke="#8B86E8" stroke-width="4"/></svg>
+<span class="d" style="font-weight:700;font-size:24px;letter-spacing:-0.02em">hand<span class="hl">shake</span></span>
+</div>
+<button class="nv">Hoje</button>
+<button class="nv">Edital</button>
+<button class="nv on"><span class="hl">Controle</span></button>
+<button class="nv">Revisões</button>
+</div>
+<div style="flex:1;min-width:0;padding:40px 48px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;justify-content:space-between;align-items:flex-end">
+<div>
+<div class="d" style="font-weight:700;font-size:36px;letter-spacing:-0.02em">Controle</div>
+<div style="font-size:16px;color:#5B607A;margin-top:2px">Ciclo 01 · iniciado em 09/10 · 30 dias</div>
+</div>
+<div style="display:flex;gap:16px">
+<div class="lg"><span class="sq" style="background:#D3E3F5"></span>decoreba</div>
+<div class="lg"><span class="sq" style="background:#FFF2CC"></span>raciocínio</div>
+<div class="lg"><span class="sq" style="background:#8EC5FF"></span>estudado</div>
+<div class="lg"><span class="sq wk"></span>fim de semana</div>
+<div class="lg"><span class="sq mt" style="border:1px solid #7FC48E"></span>reunião</div>
+</div>
+</div>
+<div class="card" style="padding:12px 20px;display:flex;align-items:center;gap:20px">
+<div><div style="font-size:16px;font-weight:600">Cor da rodada 1</div><div style="font-size:13px;color:#5B607A">Vale até o fim da rodada.</div></div>
+<div style="display:flex;gap:8px;align-items:center">
+<button class="sw" aria-label="Coral" style="background:#FFB4A2"></button>
+<button class="sw" aria-label="Âmbar" style="background:#FFD166"></button>
+<button class="sw" aria-label="Lima" style="background:#D4E157"></button>
+<button class="sw" aria-label="Menta" style="background:#86E3B0"></button>
+<button class="sw" aria-label="Turquesa" style="background:#6FD3D3"></button>
+<button class="sw" aria-label="Azul-claro, selecionada" style="background:#8EC5FF;outline:2px solid #14162B;outline-offset:2px"></button>
+<button class="sw" aria-label="Lavanda" style="background:#A9A6FF"></button>
+<button class="sw" aria-label="Lilás" style="background:#D7A8FF"></button>
+<button class="sw" aria-label="Rosa" style="background:#FF9FCB"></button>
+<button class="sw" aria-label="Areia" style="background:#C9B79C"></button>
+</div>
+</div>
+<div class="card" style="padding:8px;overflow-x:auto">
+<div class="g"><div></div>
+<div class="hd wk"><span>10 out</span></div>
+<div class="hd wk td"><span>11 out</span></div>
+<div class="hd"><span>12 out</span></div>
+<div class="hd mt"><span>13 out</span></div>
+<div class="hd"><span>14 out</span></div>
+<div class="hd"><span>15 out</span></div>
+<div class="hd"><span>16 out</span></div>
+<div class="hd wk"><span>17 out</span></div>
+<div class="hd wk"><span>18 out</span></div>
+<div class="hd"><span>19 out</span></div>
+<div class="hd mt"><span>20 out</span></div>
+<div class="hd"><span>21 out</span></div>
+<div class="hd"><span>22 out</span></div>
+<div class="hd"><span>23 out</span></div>
+<div class="hd wk"><span>24 out</span></div>
+<div class="hd wk"><span>25 out</span></div>
+<div class="hd"><span>26 out</span></div>
+<div class="hd mt"><span>27 out</span></div>
+<div class="hd"><span>28 out</span></div>
+<div class="hd"><span>29 out</span></div>
+<div class="hd"><span>30 out</span></div>
+<div class="hd wk"><span>31 out</span></div>
+<div class="hd wk"><span>1 nov</span></div>
+<div class="hd"><span>2 nov</span></div>
+<div class="hd mt"><span>3 nov</span></div>
+<div class="hd"><span>4 nov</span></div>
+<div class="hd"><span>5 nov</span></div>
+<div class="hd"><span>6 nov</span></div>
+<div class="hd wk"><span>7 nov</span></div>
+<div class="hd wk"><span>8 nov</span></div>
+</div>
+<div class="g"><div class="lb pd">Estado, Democracia, Direitos</div>
+<div class="cl dn wk"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="#14162B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pr">Fundamentos de Evidências</div>
+<div class="cl dn wk"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="#14162B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pr wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pd">Fundamentos de Auditoria</div>
+<div class="cl dn wk"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="#14162B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pr">Persistência, Integração</div>
+<div class="cl wk"></div>
+<div class="cl dn wk"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="#14162B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pr wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pd">Fundamentos de Transparência</div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pd">Sociedade brasileira, Desigualdades</div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+</div>
+<div class="g"><div class="lb pd">Fundamentos de Governança</div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+</div>
+<div class="g"><div class="lb pr">Desenvolvimento Seguro</div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pr wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pr"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pr wk"></div>
+</div>
+<div class="g"><div class="lb pd">Fundamentos de Direito Público</div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl pd"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl pd wk"></div>
+</div>
+<div class="g" style="margin-top:8px"><div class="lb nt">Revisão noturna</div>
+<div class="cl wk"><span style="width:10px;height:10px;border-radius:5px;background:#14162B"></span></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl"></div>
+<div class="cl wk"></div>
+<div class="cl wk"></div>
+</div><div class="g"><div class="lb ms">Revisão mensal</div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
+<div class="cl bx"></div>
+<div class="cl bx"></div>
+</div></div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4338CA"},"$preview":{"width":1280,"height":860}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#4338CA' };
+}
+}
+</script>
+</body>
+</html>

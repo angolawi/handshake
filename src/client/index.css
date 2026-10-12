@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+:root {
+  --accent: #4338CA;
+  --accent-soft: #E4E5FB;
+  --accent-soft-text: #2F2A9E;
+  --highlight: #FFD84D;
+  --surface: #FFFFFF;
+  --bg: #F5F6FA;
+  --ink: #14162B;
+  --ink-secondary: #5B607A;
+  --border: #E3E5F3;
+  --border-light: #D9DCEB;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: 'Figtree', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+input, textarea, select {
+  font: inherit;
+}
+
+/* Tipografia de Destaque */
+.d {
+  font-family: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
+}
+
+/* Efeito Marca-Texto (marca d'água sob o texto) */
+.hl {
+  background: linear-gradient(to top, #FFD84D 0, #FFD84D 38%, transparent 38%);
+  display: inline;
+}
+
+.hl-bold {
+  background: linear-gradient(to top, #FFD84D 0, #FFD84D 45%, transparent 45%);
+}
+
+/* Cartões */
+.card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+/* Rótulos em maiúsculas */
+.lab {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+/* Chips com Significado */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.chip-dec, .dec {
+  background: #D3E3F5;
+  color: #1F3F66;
+}
+
+.chip-rac, .rac {
+  background: #FFF2CC;
+  color: #6B4F00;
+}
+
+.chip-f1, .f1 {
+  background: #EEEFF6;
+  color: #3A3F5C;
+}
+
+.chip-f2, .f2 {
+  background: #FDE8D2;
+  color: #8A3F05;
+}
+
+.chip-f3, .f3 {
+  background: #FBDADA;
+  color: #8E1F1F;
+}
+
+.chip-ok, .ok {
+  background: #CFEBD8;
+  color: #17603A;
+}
+
+.chip-wn, .wn {
+  background: #FFE9B8;
+  color: #7A4B00;
+}
+
+.chip-gr, .gr {
+  background: #BFE5C8;
+  color: #17603A;
+}
+
+/* Barra de Taxa de Acerto */
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: #E3E5F3;
+  overflow: hidden;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  background: #3FA66B;
+}
+
+/* Estilos de Controles e Botões */
+.btn {
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s ease;
+}
+
+.btn:hover {
+  opacity: 0.92;
+}
+
+.btn-primary, .pri {
+  border: none;
+  color: #fff;
+  background: var(--accent);
+}
+
+.fld {
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: #fff;
+  padding: 0 14px;
+  font-size: 15px;
+  color: var(--ink);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Estilos da Matriz de Controle (30 dias) */
+.g {
+  display: grid;
+  grid-template-columns: 236px repeat(30, minmax(28px, 1fr));
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.lb {
+  min-height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+.cl {
+  height: 40px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid #ECEDF5;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hd {
+  height: 64px;
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid #ECEDF5;
+}
+
+.hd span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sw {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.wk {
+  background: #E4E6EE;
+  border-color: #E4E6EE;
+}
+
+.mt {
+  background: #BFE5C8;
+  border-color: #7FC48E;
+  color: #17603A;
+}
+
+.tr-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 56px 70px 168px;
+  gap: 6px;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: 1px solid #EEF0F7;
+}

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Mentor · Editar edital</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.d{font-family:'Bricolage Grotesque','Figtree',system-ui,sans-serif}
+.lab{font-size:13px;font-weight:600;color:#5B607A;letter-spacing:.06em;text-transform:uppercase}
+.hl{background:linear-gradient(to top,#FFD84D 0,#FFD84D 38%,transparent 38%)}
+.card{background:#fff;border:1px solid #E3E5F3;border-radius:16px}
+.chip{display:inline-block;padding:3px 10px;border-radius:9px;font-size:12px;font-weight:500;white-space:nowrap}
+.dec{background:#D3E3F5;color:#1F3F66}
+.rac{background:#FFF2CC;color:#6B4F00}
+.f1{background:#EEEFF6;color:#3A3F5C}
+.f2{background:#FDE8D2;color:#8A3F05}
+.ok{background:#CFEBD8;color:#17603A}
+.wn{background:#FFE9B8;color:#7A4B00}
+.gr{background:#BFE5C8;color:#17603A}
+.sb{width:232px;flex:none;background:#fff;border-right:1px solid #E3E5F3;padding:28px 16px;display:flex;flex-direction:column;gap:4px;box-sizing:border-box}
+.nv{background:none;border:none;height:44px;text-align:left;font-size:15px;color:#5B607A;padding:0 12px;border-radius:10px}
+.nv.on{color:#14162B;font-weight:600;background:#F0F1FA}
+.btn{height:44px;padding:0 20px;border-radius:12px;border:1px solid #D9DCEB;background:#fff;font-weight:600;font-size:15px;color:#14162B}
+.pri{border:none;color:#fff;background:{{accent}}}
+.fld{height:44px;border-radius:12px;border:1px solid #D9DCEB;background:#fff;padding:0 14px;font-size:15px;color:#14162B;width:100%;box-sizing:border-box}
+.bar{height:6px;border-radius:3px;background:#E3E5F3;overflow:hidden}
+.bar i{display:block;height:100%;background:#3FA66B}
+
+</style>
+</helmet>
+<div style="display:flex;min-height:100%;background:#F5F6FA;color:#14162B;font-family:'Figtree',system-ui,sans-serif">
+<div class="sb">
+<div style="display:flex;align-items:center;gap:8px;padding:0 12px 4px">
+<svg width="26" height="26" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13.6 A12 12 0 0 1 24 34.4 A12 12 0 0 1 24 13.6 Z" fill="#FFD84D"/><circle cx="18" cy="24" r="12" fill="none" style="stroke:{{accent}}" stroke-width="4"/><circle cx="30" cy="24" r="12" fill="none" stroke="#8B86E8" stroke-width="4"/></svg>
+<span class="d" style="font-weight:700;font-size:24px;letter-spacing:-0.02em">hand<span class="hl">shake</span></span>
+</div>
+<div style="padding:0 12px 20px;font-size:13px;color:#5B607A">Visão do mentor</div>
+<button class="nv">Mentorados</button>
+<button class="nv on"><span class="hl">Editais</span></button>
+<button class="nv">Ciclos</button>
+<button class="nv">Convites</button>
+</div>
+<div style="flex:1;min-width:0;padding:40px 48px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;justify-content:space-between;align-items:flex-end"><div><div class="d" style="font-weight:700;font-size:36px;letter-spacing:-0.02em">Editar edital</div><div style="font-size:16px;color:#5B607A;margin-top:2px">Concurso CGU · adicionar disciplina</div></div><div style="display:flex;gap:10px"><button class="btn">Descartar</button><button class="btn pri">Salvar disciplina</button></div></div><div class="card" style="padding:16px 20px;display:flex;gap:16px;align-items:flex-end"><div style="flex:1;min-width:0"><div class="lab" style="margin-bottom:6px">Grupo</div><select class="fld" aria-label="Grupo"><option>Básicas</option><option selected>Complementares</option><option>Específicas</option><option>+ Novo grupo…</option></select></div><div style="flex:1;min-width:0"><div class="lab" style="margin-bottom:6px">Tipo da disciplina</div><div style="display:flex;border:1px solid #D9DCEB;border-radius:12px;overflow:hidden;height:44px"><button style="flex:1;border:none;background:#E4E5FB;color:#2F2A9E;font-weight:600;font-size:15px">Decoreba</button><button style="flex:1;border:none;border-left:1px solid #D9DCEB;background:#fff;color:#5B607A;font-weight:400;font-size:15px">Raciocínio</button></div></div></div><div style="display:flex;gap:16px;align-items:stretch"><div class="card" style="flex:1;min-width:0;padding:18px 20px;display:flex;flex-direction:column;gap:10px"><div class="d" style="font-weight:700;font-size:20px">Texto do edital</div><textarea aria-label="Texto do edital" style="flex:1;min-height:420px;border-radius:12px;border:1px solid #D9DCEB;padding:12px 14px;font-size:14px;line-height:1.5;resize:none;color:#14162B">FUNDAMENTOS DE TRANSPARÊNCIA, OUVIDORIA E PARTICIPAÇÃO SOCIAL: 1 Acesso à informação. 1.1 Transparência ativa e passiva; finalidade de pedidos e recursos; publicidade como regra e motivação das restrições. 1.2 Distinção conceitual entre informação classificada, sigilos previstos em lei, informação pessoal e documento preparatório; acesso parcial e comunicação clara da decisão. 2 Transparência e proteção de dados. 2.1 Compatibilização entre acesso à informação e proteção de dados pessoais; finalidade, necessidade e salvaguardas. 2.2 Diferença entre dados pessoais e dados pessoais sensíveis; noções de tarjamento, anonimização e risco de reidentificação. 3 Ouvidoria e proteção das pessoas. 4 Participação e melhoria de serviços. 4.2 Recorrências em manifestações como sinais de problemas. 4.2.1 Subnotificação. 4.3 Transparência ativa, dados abertos e Portal daTransparência como meios de acesso e controle; qualidade, atualização, cobertura e limites da informação.</textarea></div><div class="card" style="flex:1;min-width:0;padding:18px 20px"><div style="display:flex;justify-content:space-between;align-items:center"><div class="d" style="font-weight:700;font-size:20px">Pré-visualização</div><span class="chip wn">1 aviso para revisar</span></div><div class="lab" style="margin:8px 0 4px">Fundamentos de Transparência, Ouvidoria e Participação Social</div><div style="padding:6px 0 6px 0px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">1</b>Acesso à informação.</div><div style="padding:6px 0 6px 18px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">1.1</b>Transparência ativa e passiva; finalidade de pedidos e recursos; publicidade como regra e motivação das restrições.</div><div style="padding:6px 0 6px 18px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">1.2</b>Distinção conceitual entre informação classificada, sigilos previstos em lei, informação pessoal e documento preparatório; acesso parcial e comunicação clara da decisão.</div><div style="padding:6px 0 6px 0px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">2</b>Transparência e proteção de dados.</div><div style="padding:6px 0 6px 18px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">2.1</b>Compatibilização entre acesso à informação e proteção de dados pessoais; finalidade, necessidade e salvaguardas.</div><div style="padding:6px 0 6px 18px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">2.2</b>Diferença entre dados pessoais e dados pessoais sensíveis; noções de tarjamento, anonimização e risco de reidentificação.</div><div style="padding:6px 0 6px 0px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">3</b>Ouvidoria e proteção das pessoas.</div><div style="padding:6px 0 6px 0px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">4</b>Participação e melhoria de serviços.</div><div style="padding:6px 0 6px 18px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">4.2</b>Recorrências em manifestações como sinais de problemas.</div><div style="padding:6px 0 6px 36px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">4.2.1</b>Subnotificação.</div><div style="padding:6px 0 6px 18px;font-size:14px;line-height:1.35"><b style="display:inline-block;min-width:34px">4.3</b>Transparência ativa, dados abertos e Portal daTransparência como meios de acesso e controle; qualidade, atualização, cobertura e limites da informação.<div style="margin:4px 0 0 52px;padding:8px 12px;border-radius:10px;background:#FFF4D6;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px"><span>Palavra colada: “daTransparência” → “da Transparência”</span><span style="display:flex;gap:6px"><button class="btn" style="height:32px;padding:0 12px;font-size:13px">Ignorar</button><button class="btn pri" style="height:32px;padding:0 12px;font-size:13px">Corrigir</button></span></div></div></div></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4338CA"},"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#4338CA' };
+}
+}
+</script>
+</body>
+</html>
