@@ -1,0 +1,18 @@
+{
+  "name": "Handshake · Mentor e aluno em sincronia",
+  "short_name": "Handshake",
+  "description": "Plataforma de controle e mentoria de estudos baseada na metodologia Gleyson Azevedo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F6FA",
+  "theme_color": "#4338CA",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

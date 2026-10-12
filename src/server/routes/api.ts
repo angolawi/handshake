@@ -660,10 +660,23 @@ apiRouter.get('/matriculas/:id/proxima-sessao', (req, res) => {
     slot.disciplina_id
   );
 
+  // Resumos da passada anterior desta disciplina no ciclo (HU-5.2)
+  const resumosAnteriores = dbHelper.all(
+    `SELECT rf.id, rf.storage_key, rf.enviada_em, t.texto as topico_texto, t.numeracao
+     FROM resumo_foto rf
+     JOIN sessao s ON rf.sessao_id = s.id
+     JOIN topico t ON s.topico_id = t.id
+     WHERE s.matricula_id = ? AND t.disciplina_id = ? AND rf.excluida_em IS NULL
+     ORDER BY rf.enviada_em DESC LIMIT 4`,
+    matriculaId,
+    slot.disciplina_id
+  );
+
   res.json({
     slot,
     fase,
     topico: topico || { id: 'top_default', numeracao: '1.1', texto: 'Tópico de Estudo' },
+    resumosAnteriores: resumosAnteriores || [],
   });
 });
 

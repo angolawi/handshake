@@ -27,6 +27,21 @@ export const RevisaoHub: React.FC<RevisaoHubProps> = ({ matriculaId }) => {
     fetchRevisoes();
   }, [matriculaId]);
 
+  const [lembreteAtivo, setLembreteAtivo] = useState(false);
+
+  const handleAtivarLembretes = async () => {
+    if ('Notification' in window) {
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        setLembreteAtivo(true);
+        new Notification('Handshake · Lembretes Ativos', {
+          body: 'Você será lembrado diariamente às 22:00 para fazer sua rápida revisão noturna dos resumos.',
+          icon: '/favicon.svg',
+        });
+      }
+    }
+  };
+
   const handleMarcarNoturna = async () => {
     setMarcando(true);
     try {
@@ -88,20 +103,29 @@ export const RevisaoHub: React.FC<RevisaoHubProps> = ({ matriculaId }) => {
                 Percorra os resumos fotográficos do dia para sinalizar ao cérebro que o conteúdo estudado é prioritário para consolidação durante o sono.
               </p>
             </div>
-            {revisaoNoturnaFeita ? (
-              <span className="chip ok py-2 px-4 text-sm font-semibold flex items-center gap-1.5 shrink-0">
-                <Check size={16} /> Revisão de hoje concluída
-              </span>
-            ) : (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 shrink-0">
               <button
-                onClick={handleMarcarNoturna}
-                disabled={marcando}
-                className="btn btn-primary h-11 shrink-0"
+                onClick={handleAtivarLembretes}
+                className="btn border border-[#D9DCEB] bg-white text-xs h-10 px-3 flex items-center gap-1.5"
+                title="Receber lembrete noturno às 22h"
               >
-                <Check size={16} className="mr-1" />
-                {marcando ? 'Salvando...' : 'Marcar como feita'}
+                <span>{lembreteAtivo ? '🔔 Lembrete 22h ativo' : '🔔 Ativar lembrete 22h'}</span>
               </button>
-            )}
+              {revisaoNoturnaFeita ? (
+                <span className="chip ok py-2 px-4 text-sm font-semibold flex items-center gap-1.5 shrink-0">
+                  <Check size={16} /> Revisão de hoje concluída
+                </span>
+              ) : (
+                <button
+                  onClick={handleMarcarNoturna}
+                  disabled={marcando}
+                  className="btn btn-primary h-10 shrink-0"
+                >
+                  <Check size={16} className="mr-1" />
+                  {marcando ? 'Salvando...' : 'Marcar como feita'}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Galeria de Fotos do Dia */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Check, AlertCircle, Play, Pause, ChevronRight, X } from 'lucide-react';
+import { Camera, Check, AlertCircle, Play, Pause, ChevronRight, X, Volume2, Film, RefreshCw, HelpCircle } from 'lucide-react';
 import { Topico, CicloSlot } from '../../../shared/types.js';
 
 interface SessaoEstudoProps {
@@ -8,13 +8,47 @@ interface SessaoEstudoProps {
   onConcluirSessao?: () => void;
 }
 
+// Síntese de áudio nativa via Web Audio API (HU-3.5)
+function playStageChime() {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    
+    // Acorde harmônico suave de gongo/sino (Dó-Mi-Sol)
+    const freqs = [523.25, 659.25, 783.99];
+    const now = ctx.currentTime;
+
+    freqs.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.2, now + idx * 0.08 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 1.2);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now + idx * 0.08);
+      osc.stop(now + idx * 0.08 + 1.3);
+    });
+  } catch (err) {
+    console.warn('Áudio não suportado ou bloqueado:', err);
+  }
+}
+
 export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobile = false, onConcluirSessao }) => {
   const [loading, setLoading] = useState(true);
   const [slot, setSlot] = useState<CicloSlot | null>(null);
   const [topico, setTopico] = useState<Topico | null>(null);
   const [fase, setFase] = useState<number>(1);
+  const [resumosAnteriores, setResumosAnteriores] = useState<any[]>([]);
+  const [mostrarReprise, setMostrarReprise] = useState(true);
 
-  // Etapas da Fase 1 por padrão
+  // Etapas das Fases
   const etapasFase1 = [
     { id: 'estudo', nome: 'Estudo', duracaoMin: 45 },
     { id: 'teste', nome: 'Teste', duracaoMin: 10 },
@@ -45,7 +79,10 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
   const [isPaused, setIsPaused] = useState(false);
   const targetTimeRef = useRef<number>(Date.now() + duracaoSegundosTotal * 1000);
 
-  // Upload de foto do resumo com compressão client-side
+  // Sessão Interrompida Recuperada (HU-3.6)
+  const [sessaoInterrompidaDetectada, setSessaoInterrompidaDetectada] = useState<any | null>(null);
+
+  // Upload de foto do resumo
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [fotoError, setFotoError] = useState<string | null>(null);
@@ -55,11 +92,27 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
   const [questoesCertas, setQuestoesCertas] = useState('5');
   const [questoesResolvidas, setQuestoesResolvidas] = useState('5');
   const [concluiuTopico, setConcluiuTopico] = useState(true);
+  const [confirmarZeroQuestoes, setConfirmarZeroQuestoes] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [sessaoConcluidaSucesso, setSessaoConcluidaSucesso] = useState(false);
 
-  // Carrega próxima sessão da matrícula
+  // 1. Carrega dados da sessão e verifica sessão interrompida (HU-3.6)
   useEffect(() => {
+    // Checa se havia sessão salva no localStorage
+    const saved = localStorage.getItem('handshake_sessao_ativa');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const agora = Date.now();
+        // Se a sessão foi gravada há menos de 4 horas
+        if (agora - parsed.salvoEm < 4 * 60 * 60 * 1000) {
+          setSessaoInterrompidaDetectada(parsed);
+        } else {
+          localStorage.removeItem('handshake_sessao_ativa');
+        }
+      } catch {}
+    }
+
     fetch(`/api/matriculas/${matriculaId}/proxima-sessao`)
       .then(res => res.json())
       .then(data => {
@@ -67,6 +120,7 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
           setSlot(data.slot);
           setFase(data.fase || 1);
           setTopico(data.topico || null);
+          setResumosAnteriores(data.resumosAnteriores || []);
         }
       })
       .catch(console.error)
@@ -78,7 +132,23 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
     const totalSeg = etapaAtual.duracaoMin * 60;
     setSegundosRestantes(totalSeg);
     targetTimeRef.current = Date.now() + totalSeg * 1000;
-  }, [etapaIdx, etapaAtual.duracaoMin]);
+
+    // Salva no localStorage para tolerar fechamento inesperado
+    if (topico) {
+      localStorage.setItem(
+        'handshake_sessao_ativa',
+        JSON.stringify({
+          topicoTexto: topico.texto,
+          topicoNumeracao: topico.numeracao,
+          disciplinaNome: slot?.disciplina?.nome,
+          etapaIdx,
+          fase,
+          segundosRestantes: totalSeg,
+          salvoEm: Date.now(),
+        })
+      );
+    }
+  }, [etapaIdx, etapaAtual.duracaoMin, topico, fase]);
 
   // Loop do cronômetro resistente a segundo plano
   useEffect(() => {
@@ -90,7 +160,9 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
 
       if (remaining <= 0) {
         clearInterval(interval);
-        // Avança de etapa se não for a última
+        // Toca alerta sonoro ao fim da etapa (HU-3.5)
+        playStageChime();
+
         if (etapaIdx < etapas.length - 1) {
           setEtapaIdx(prev => prev + 1);
         } else {
@@ -104,22 +176,32 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
 
   const togglePause = () => {
     if (isPaused) {
-      // Retomando
       targetTimeRef.current = Date.now() + segundosRestantes * 1000;
       setIsPaused(false);
     } else {
-      // Pausando
       setIsPaused(true);
     }
   };
 
   const proximaEtapa = () => {
+    playStageChime();
     if (etapaIdx < etapas.length - 1) {
       setEtapaIdx(prev => prev + 1);
     } else {
-      // Fim das etapas, abrir encerramento
       setShowModalConclusao(true);
     }
+  };
+
+  const handleRetomarInterrompida = () => {
+    if (sessaoInterrompidaDetectada) {
+      setEtapaIdx(sessaoInterrompidaDetectada.etapaIdx || 0);
+      setSessaoInterrompidaDetectada(null);
+    }
+  };
+
+  const handleDescartarInterrompida = () => {
+    localStorage.removeItem('handshake_sessao_ativa');
+    setSessaoInterrompidaDetectada(null);
   };
 
   // Compressão de foto no navegador via Canvas (máx 1600px, qualidade ~80%)
@@ -178,8 +260,17 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
       return;
     }
 
-    if (Number(questoesCertas) > Number(questoesResolvidas)) {
+    const nResolvidas = Number(questoesResolvidas);
+    const nCertas = Number(questoesCertas);
+
+    if (nCertas > nResolvidas) {
       setFotoError('Questões certas não podem superar as resolvidas.');
+      return;
+    }
+
+    // Confirmação de 0 questões resolvidas (HU-3.8)
+    if (nResolvidas === 0 && !confirmarZeroQuestoes) {
+      setConfirmarZeroQuestoes(true);
       return;
     }
 
@@ -191,8 +282,8 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
     formData.append('slotId', slot?.id || '');
     formData.append('topicoId', topico?.id || '');
     formData.append('fase', String(fase));
-    formData.append('certas', questoesCertas);
-    formData.append('resolvidas', questoesResolvidas);
+    formData.append('certas', String(nCertas));
+    formData.append('resolvidas', String(nResolvidas));
     formData.append('concluiuTopico', String(concluiuTopico));
     if (fotoFile) {
       formData.append('foto', fotoFile);
@@ -205,6 +296,7 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
       });
       const data = await res.json();
       if (data.ok) {
+        localStorage.removeItem('handshake_sessao_ativa');
         setSessaoConcluidaSucesso(true);
         setTimeout(() => {
           setShowModalConclusao(false);
@@ -228,7 +320,6 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
   const tempoFormatado = `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
   const fracaoProgresso = 1 - (segundosRestantes / duracaoSegundosTotal);
   
-  // Raio e perímetro
   const radius = isMobile ? 104 : 122;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - fracaoProgresso);
@@ -239,6 +330,60 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
 
   return (
     <div className={`flex flex-col gap-6 ${isMobile ? 'max-w-[390px] mx-auto p-4 pb-20' : 'max-w-[1080px] mx-auto p-8'}`}>
+      {/* Aviso de Sessão Interrompida Recuperada (HU-3.6) */}
+      {sessaoInterrompidaDetectada && (
+        <div className="card p-4 bg-[#FFF4D6] border-[#FFE9B8] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs sm:text-sm text-[#7A4B00]">
+          <div className="flex items-center gap-2">
+            <RefreshCw size={18} className="shrink-0 text-[#B45309]" />
+            <span>
+              Sessão em andamento recuperada: <b>{sessaoInterrompidaDetectada.disciplinaNome}</b> ({sessaoInterrompidaDetectada.topicoNumeracao}).
+            </span>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button onClick={handleDescartarInterrompida} className="btn h-8 px-3 text-xs border border-[#FFE9B8] bg-white">
+              Descartar
+            </button>
+            <button onClick={handleRetomarInterrompida} className="btn btn-primary h-8 px-3 text-xs">
+              Retomar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Reprise da Passada Anterior na Disciplina (HU-5.2) */}
+      {resumosAnteriores.length > 0 && mostrarReprise && (
+        <div className="card p-4 bg-[#F8F9FD] border-[#D9DCEB] flex flex-col gap-3">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Film size={16} className="text-[#4338CA]" />
+              <span className="font-semibold text-xs text-[#2F2A9E] uppercase tracking-wider">
+                Reprise da Passada Anterior (Lembrete: último episódio)
+              </span>
+            </div>
+            <button onClick={() => setMostrarReprise(false)} className="text-xs text-[#5B607A] hover:underline">
+              Ocultar
+            </button>
+          </div>
+          <div className="flex items-center gap-3 overflow-x-auto py-1">
+            {resumosAnteriores.map((rf: any, i: number) => (
+              <div key={rf.id || i} className="shrink-0 w-32 border border-[#E3E5F3] rounded-lg p-1.5 bg-white">
+                <img
+                  src={`/uploads/${rf.storage_key}`}
+                  alt="Resumo anterior"
+                  className="w-full h-20 object-cover rounded bg-[#EEF0F7]"
+                  onError={(e: any) => {
+                    e.target.src = 'https://placehold.co/400x300/e4e5fb/2f2a9e?text=Resumo';
+                  }}
+                />
+                <div className="text-[11px] text-[#14162B] font-medium mt-1 truncate">
+                  {rf.numeracao} · {rf.topico_texto}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Cabeçalho da Sessão */}
       <div className="flex justify-between items-start">
         <div>
@@ -252,6 +397,16 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
             {slot?.disciplina?.nome || 'Fundamentos de Transparência, Ouvidoria e Participação Social'} · {topico?.numeracao || '4.2'}
           </div>
         </div>
+
+        {/* Botão de Testar Áudio */}
+        <button
+          onClick={playStageChime}
+          title="Testar sinal sonoro de fim de etapa"
+          className="text-xs text-[#5B607A] hover:text-[#4338CA] flex items-center gap-1 border border-[#E3E5F3] px-2.5 py-1.5 rounded-lg bg-white"
+        >
+          <Volume2 size={14} />
+          <span className="hidden sm:inline">Som ativo</span>
+        </button>
       </div>
 
       {/* Grid Principal: Cronômetro à esquerda e Etapas/Upload à direita */}
@@ -330,7 +485,10 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
               return (
                 <div
                   key={etp.id}
-                  onClick={() => setEtapaIdx(idx)}
+                  onClick={() => {
+                    playStageChime();
+                    setEtapaIdx(idx);
+                  }}
                   className={`flex items-center justify-between p-3.5 px-4 rounded-xl border text-[15px] cursor-pointer transition-colors ${
                     isCurrent
                       ? 'bg-[#E4E5FB] border-[#E4E5FB] text-[#2F2A9E] font-semibold'
@@ -420,6 +578,31 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
                 </div>
                 <h4 className="font-bold text-lg text-[#14162B]">Sessão Gravada!</h4>
                 <p className="text-sm text-[#5B607A]">Controle matricial e progresso atualizados com sucesso.</p>
+              </div>
+            ) : confirmarZeroQuestoes ? (
+              <div className="p-4 bg-[#FFF4D6] border border-[#FFE9B8] rounded-xl flex flex-col gap-3">
+                <div className="flex items-center gap-2 font-bold text-sm text-[#7A4B00]">
+                  <HelpCircle size={18} />
+                  <span>Deseja registrar 0 questões?</span>
+                </div>
+                <p className="text-xs text-[#7A4B00]">
+                  Você informou 0 questões resolvidas nesta sessão. Caso tenha resolvido questões em outro momento, você também poderá lançá-las diretamente no tópico.
+                </p>
+                <div className="flex gap-2 justify-end mt-2">
+                  <button
+                    onClick={() => setConfirmarZeroQuestoes(false)}
+                    className="btn border border-[#FFE9B8] bg-white text-xs h-9"
+                  >
+                    Voltar e preencher
+                  </button>
+                  <button
+                    onClick={handleFinalizarSessao}
+                    disabled={salvando}
+                    className="btn btn-primary text-xs h-9"
+                  >
+                    {salvando ? 'Salvando...' : 'Confirmar com 0'}
+                  </button>
+                </div>
               </div>
             ) : (
               <>
