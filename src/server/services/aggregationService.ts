@@ -188,3 +188,75 @@ export function calculateWeeklyQuestions(
     };
   });
 }
+
+export interface MetricasPontuacao {
+  certas: number;
+  erradas: number;
+  resolvidas: number;
+  peso: number;
+  fatorPenalidade: number;
+  metodoCobranca: 'certo_errado' | 'multipla_escolha';
+  pontuacaoBruta: number;
+  pontuacaoLiquida: number;
+  aproveitamentoLiquido: number; // % sobre pontuação máxima possível
+  taxaAcerto: number; // % de acertos sobre questões resolvidas
+}
+
+/**
+ * Calcula a pontuação líquida conforme o método de cobrança do edital (HU-2.1 / HU-4.3 / HU-4.6)
+ * - certo_errado (ex: CEBRASPE): (certas * peso) - (erradas * peso * fatorPenalidade)
+ * - multipla_escolha (ex: FGV/FCC): (certas * peso)
+ */
+export function calcularPontuacaoLiquida(params: {
+  certas: number;
+  resolvidas: number;
+  peso?: number;
+  metodoCobranca?: 'certo_errado' | 'multipla_escolha';
+  fatorPenalidade?: number;
+}): MetricasPontuacao {
+  const {
+    certas,
+    resolvidas,
+    peso = 1.0,
+    metodoCobranca = 'certo_errado',
+    fatorPenalidade = 1.0,
+  } = params;
+
+  const safeCertas = Math.max(0, certas);
+  const safeResolvidas = Math.max(0, resolvidas);
+  const erradas = Math.max(0, safeResolvidas - safeCertas);
+
+  const pontuacaoBruta = safeCertas * peso;
+  let pontuacaoLiquida = 0;
+
+  if (metodoCobranca === 'certo_errado') {
+    pontuacaoLiquida = (safeCertas * peso) - (erradas * peso * fatorPenalidade);
+  } else {
+    // multipla_escolha
+    pontuacaoLiquida = safeCertas * peso;
+  }
+
+  // Máximo teórico que o aluno poderia obter para as questões resolvidas
+  const pontuacaoMaxima = safeResolvidas * peso;
+
+  const aproveitamentoLiquido = pontuacaoMaxima > 0
+    ? Math.max(0, Math.round((pontuacaoLiquida / pontuacaoMaxima) * 100))
+    : 0;
+
+  const taxaAcerto = safeResolvidas > 0
+    ? Math.round((safeCertas / safeResolvidas) * 100)
+    : 0;
+
+  return {
+    certas: safeCertas,
+    erradas,
+    resolvidas: safeResolvidas,
+    peso,
+    fatorPenalidade,
+    metodoCobranca,
+    pontuacaoBruta,
+    pontuacaoLiquida: Number(pontuacaoLiquida.toFixed(2)),
+    aproveitamentoLiquido,
+    taxaAcerto,
+  };
+}

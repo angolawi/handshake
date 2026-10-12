@@ -45,7 +45,11 @@ CREATE TABLE IF NOT EXISTS edital (
   mentor_id TEXT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
   nome TEXT NOT NULL,
   banca TEXT NOT NULL,
-  versao INTEGER NOT NULL DEFAULT 1
+  versao INTEGER NOT NULL DEFAULT 1,
+  metodo_cobranca TEXT NOT NULL DEFAULT 'certo_errado' CHECK(metodo_cobranca IN ('certo_errado', 'multipla_escolha')),
+  fator_penalidade REAL NOT NULL DEFAULT 1.0,
+  pontuacao_total REAL DEFAULT 120.0,
+  nota_minima_aprovacao REAL DEFAULT 60.0
 );
 
 CREATE TABLE IF NOT EXISTS grupo (
@@ -54,7 +58,8 @@ CREATE TABLE IF NOT EXISTS grupo (
   nome TEXT NOT NULL,
   ordem INTEGER NOT NULL DEFAULT 0,
   questoes_prova INTEGER NOT NULL DEFAULT 0,
-  peso INTEGER NOT NULL DEFAULT 1
+  peso REAL NOT NULL DEFAULT 1.0,
+  nota_minima_grupo REAL DEFAULT 0.0
 );
 
 CREATE TABLE IF NOT EXISTS disciplina (
@@ -64,6 +69,8 @@ CREATE TABLE IF NOT EXISTS disciplina (
   grupo_id TEXT NOT NULL REFERENCES grupo(id) ON DELETE CASCADE,
   tipo TEXT NOT NULL CHECK(tipo IN ('decoreba', 'raciocinio')),
   ordem INTEGER NOT NULL DEFAULT 0,
+  peso REAL NOT NULL DEFAULT 1.0,
+  questoes_estimadas INTEGER DEFAULT 0,
   arquivado_em TEXT
 );
 

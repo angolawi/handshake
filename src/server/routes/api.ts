@@ -9,6 +9,7 @@ import {
   aggregateTopicMetrics,
   checkAndAdvanceDisciplinePhase,
   calculateWeeklyQuestions,
+  calcularPontuacaoLiquida,
 } from '../services/aggregationService.js';
 import { recordAudit, getAuditsByMentorado } from '../services/auditService.js';
 import { deleteStudentData } from '../services/retentionService.js';
@@ -239,8 +240,213 @@ apiRouter.put('/mentorados/:id/tempos', (req, res) => {
 
 // --- EDITAIS & ESTRUTURA (HU-2.1 a 2.8) ---
 apiRouter.get('/editais', (req, res) => {
-  const editais = dbHelper.all(`SELECT * FROM edital ORDER BY versao DESC`);
+  const editais = dbHelper.all(`
+    SELECT e.*, 
+           COUNT(DISTINCT g.id) as total_grupos, 
+           COUNT(DISTINCT d.id) as total_disciplinas,
+           COUNT(DISTINCT m.id) as total_matriculas
+    FROM edital e
+    LEFT JOIN grupo g ON g.edital_id = e.id
+    LEFT JOIN disciplina d ON d.edital_id = e.id AND d.arquivado_em IS NULL
+    LEFT JOIN matricula m ON m.edital_id = e.id AND m.removido_em IS NULL
+    GROUP BY e.id
+    ORDER BY e.versao DESC, e.nome ASC
+  `);
   res.json(editais);
+});
+
+apiRouter.post('/editais', (req, res) => {
+  const {
+    nome,
+    banca = 'CEBRASPE',
+    metodo_cobranca = 'certo_errado',
+    fator_penalidade = 1.0,
+    pontuacao_total = 120.0,
+    nota_minima_aprovacao = 60.0,
+    mentorId = 'usr_mentor_gleyson',
+    grupos = [],
+  } = req.body;
+
+  if (!nome || !nome.trim()) {
+    return res.status(400).json({ error: 'Nome do edital é obrigatório' });
+  }
+
+  const editalId = `edital_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+  dbHelper.run(
+    `INSERT INTO edital (id, mentor_id, nome, banca, versao, metodo_cobranca, fator_penalidade, pontuacao_total, nota_minima_aprovacao)
+     VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)`,
+    editalId,
+    mentorId,
+    nome.trim(),
+    banca.trim(),
+    metodo_cobranca,
+    Number(fator_penalidade) || 0,
+    Number(pontuacao_total) || 120,
+    Number(nota_minima_aprovacao) || 60
+  );
+
+  // Se grupos forem fornecidos no payload de criação
+  if (Array.isArray(grupos)) {
+    for (let gIdx = 0; gIdx < grupos.length; gIdx++) {
+      const g = grupos[gIdx];
+      const grupoId = `grp_${Date.now()}_${gIdx}_${Math.random().toString(36).substring(2, 6)}`;
+      dbHelper.run(
+        `INSERT INTO grupo (id, edital_id, nome, ordem, questoes_prova, peso, nota_minima_grupo)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        grupoId,
+        editalId,
+        g.nome || `Grupo ${gIdx + 1}`,
+        g.ordem || gIdx + 1,
+        Number(g.questoes_prova) || 0,
+        Number(g.peso) || 1.0,
+        Number(g.nota_minima_grupo) || 0.0
+      );
+
+      if (Array.isArray(g.disciplinas)) {
+        for (let dIdx = 0; dIdx < g.disciplinas.length; dIdx++) {
+          const d = g.disciplinas[dIdx];
+          const discId = `disc_${Date.now()}_${dIdx}_${Math.random().toString(36).substring(2, 6)}`;
+          dbHelper.run(
+            `INSERT INTO disciplina (id, edital_id, nome, grupo_id, tipo, ordem, peso, questoes_estimadas)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            discId,
+            editalId,
+            d.nome,
+            grupoId,
+            d.tipo === 'raciocinio' ? 'raciocinio' : 'decoreba',
+            d.ordem || dIdx + 1,
+            Number(d.peso) || Number(g.peso) || 1.0,
+            Number(d.questoes_estimadas) || 0
+          );
+        }
+      }
+    }
+  }
+
+  const novoEdital = dbHelper.get(`SELECT * FROM edital WHERE id = ?`, editalId);
+  res.status(201).json({ ok: true, edital: novoEdital });
+});
+
+apiRouter.put('/editais/:id', (req, res) => {
+  const { id } = req.params;
+  const { nome, banca, metodo_cobranca, fator_penalidade, pontuacao_total, nota_minima_aprovacao } = req.body;
+
+  const edital = dbHelper.get(`SELECT * FROM edital WHERE id = ?`, id);
+  if (!edital) return res.status(404).json({ error: 'Edital não encontrado' });
+
+  dbHelper.run(
+    `UPDATE edital
+     SET nome = COALESCE(?, nome),
+         banca = COALESCE(?, banca),
+         metodo_cobranca = COALESCE(?, metodo_cobranca),
+         fator_penalidade = COALESCE(?, fator_penalidade),
+         pontuacao_total = COALESCE(?, pontuacao_total),
+         nota_minima_aprovacao = COALESCE(?, nota_minima_aprovacao),
+         versao = versao + 1
+     WHERE id = ?`,
+    nome?.trim() || null,
+    banca?.trim() || null,
+    metodo_cobranca || null,
+    fator_penalidade !== undefined ? Number(fator_penalidade) : null,
+    pontuacao_total !== undefined ? Number(pontuacao_total) : null,
+    nota_minima_aprovacao !== undefined ? Number(nota_minima_aprovacao) : null,
+    id
+  );
+
+  const atualizado = dbHelper.get(`SELECT * FROM edital WHERE id = ?`, id);
+  res.json({ ok: true, edital: atualizado });
+});
+
+apiRouter.delete('/editais/:id', (req, res) => {
+  const { id } = req.params;
+  const matriculasAtivas = dbHelper.get<{ count: number }>(
+    `SELECT COUNT(*) as count FROM matricula WHERE edital_id = ? AND removido_em IS NULL`,
+    id
+  )?.count || 0;
+
+  if (matriculasAtivas > 0) {
+    return res.status(400).json({
+      error: `Não é possível excluir o edital pois existem ${matriculasAtivas} mentorados matriculados nele.`,
+    });
+  }
+
+  dbHelper.run(`DELETE FROM edital WHERE id = ?`, id);
+  res.json({ ok: true });
+});
+
+apiRouter.post('/editais/:id/grupos', (req, res) => {
+  const { id: editalId } = req.params;
+  const { nome, questoes_prova = 0, peso = 1.0, nota_minima_grupo = 0.0 } = req.body;
+
+  if (!nome || !nome.trim()) {
+    return res.status(400).json({ error: 'Nome do grupo é obrigatório' });
+  }
+
+  const maxOrdem = dbHelper.get<{ maxOrdem: number }>(
+    `SELECT COALESCE(MAX(ordem), 0) as maxOrdem FROM grupo WHERE edital_id = ?`,
+    editalId
+  )?.maxOrdem || 0;
+
+  const grupoId = `grp_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  dbHelper.run(
+    `INSERT INTO grupo (id, edital_id, nome, ordem, questoes_prova, peso, nota_minima_grupo)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    grupoId,
+    editalId,
+    nome.trim(),
+    maxOrdem + 1,
+    Number(questoes_prova) || 0,
+    Number(peso) || 1.0,
+    Number(nota_minima_grupo) || 0.0
+  );
+
+  dbHelper.run(`UPDATE edital SET versao = versao + 1 WHERE id = ?`, editalId);
+  const novoGrupo = dbHelper.get(`SELECT * FROM grupo WHERE id = ?`, grupoId);
+  res.status(201).json({ ok: true, grupo: novoGrupo });
+});
+
+apiRouter.post('/matriculas/atribuir', (req, res) => {
+  const { mentoradoId, editalId, mentorId = 'usr_mentor_gleyson' } = req.body;
+  if (!mentoradoId || !editalId) {
+    return res.status(400).json({ error: 'mentoradoId e editalId são obrigatórios' });
+  }
+
+  const existing = dbHelper.get<{ id: string; edital_id: string }>(
+    `SELECT id, edital_id FROM matricula WHERE mentorado_id = ? AND removido_em IS NULL LIMIT 1`,
+    mentoradoId
+  );
+
+  const editalNovo = dbHelper.get<{ nome: string }>(`SELECT nome FROM edital WHERE id = ?`, editalId);
+  if (!editalNovo) return res.status(404).json({ error: 'Edital não encontrado' });
+
+  if (existing) {
+    const editalAnterior = dbHelper.get<{ nome: string }>(`SELECT nome FROM edital WHERE id = ?`, existing.edital_id);
+    dbHelper.run(
+      `UPDATE matricula SET edital_id = ?, atribuido_em = datetime('now') WHERE id = ?`,
+      editalId,
+      existing.id
+    );
+    recordAudit(
+      mentorId,
+      mentoradoId,
+      'matricula',
+      'edital_id',
+      editalAnterior?.nome || existing.edital_id,
+      editalNovo.nome
+    );
+    res.json({ ok: true, matriculaId: existing.id, alterado: true });
+  } else {
+    const matId = `mat_${mentoradoId}_${Date.now()}`;
+    dbHelper.run(
+      `INSERT INTO matricula (id, mentorado_id, edital_id, atribuido_em) VALUES (?, ?, ?, datetime('now'))`,
+      matId,
+      mentoradoId,
+      editalId
+    );
+    recordAudit(mentorId, mentoradoId, 'matricula', 'edital_id', null, editalNovo.nome);
+    res.status(201).json({ ok: true, matriculaId: matId, alterado: false });
+  }
 });
 
 apiRouter.get('/editais/:id/estrutura', (req, res) => {
@@ -526,6 +732,20 @@ apiRouter.get('/matriculas/:id/disciplinas/:discId', (req, res) => {
     totalResolvidasDisc += m.resolvidas;
   }
 
+  // Busca dados de cobrança do edital
+  const editalRegras = dbHelper.get<{ metodo_cobranca: 'certo_errado' | 'multipla_escolha'; fator_penalidade: number }>(
+    `SELECT metodo_cobranca, fator_penalidade FROM edital WHERE id = ?`,
+    disciplina.edital_id
+  );
+
+  const metricasPontuacao = calcularPontuacaoLiquida({
+    certas: totalCertasDisc,
+    resolvidas: totalResolvidasDisc,
+    peso: (disciplina as any).peso || 1.0,
+    metodoCobranca: editalRegras?.metodo_cobranca || 'certo_errado',
+    fatorPenalidade: editalRegras?.fator_penalidade !== undefined ? editalRegras.fator_penalidade : 1.0,
+  });
+
   res.json({
     disciplina: {
       ...disciplina,
@@ -534,6 +754,10 @@ apiRouter.get('/matriculas/:id/disciplinas/:discId', (req, res) => {
       total_certas: totalCertasDisc,
       total_resolvidas: totalResolvidasDisc,
       porcentagem: totalResolvidasDisc > 0 ? Math.round((totalCertasDisc / totalResolvidasDisc) * 100) : 0,
+      pontuacao_liquida: metricasPontuacao.pontuacaoLiquida,
+      aproveitamento_liquido: metricasPontuacao.aproveitamentoLiquido,
+      metodo_cobranca: editalRegras?.metodo_cobranca || 'certo_errado',
+      fator_penalidade: editalRegras?.fator_penalidade !== undefined ? editalRegras.fator_penalidade : 1.0,
     },
     topicos: rootTopics,
   });

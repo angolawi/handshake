@@ -3,7 +3,8 @@
 export type PapelUsuario = 'mentor' | 'mentorado';
 export type TipoDisciplina = 'decoreba' | 'raciocinio';
 export type FaseNumero = 1 | 2 | 3;
-export type BancaEdital = 'CEBRASPE' | 'FGV' | 'Outra';
+export type BancaEdital = 'CEBRASPE' | 'FGV' | 'FCC' | 'VUNESP' | 'CESGRANRIO' | 'Outra';
+export type MetodoCobranca = 'certo_errado' | 'multipla_escolha';
 export type StatusSessao = 'em_andamento' | 'concluida' | 'interrompida';
 export type TipoEtapa = 'estudo' | 'teste' | 'recorde' | 'descanso' | 'revisao' | 'aplicacao';
 
@@ -74,9 +75,15 @@ export interface Edital {
   id: string;
   mentor_id: string;
   nome: string;
-  banca: BancaEdital;
+  banca: string;
   versao: number;
+  metodo_cobranca: MetodoCobranca;
+  fator_penalidade: number;
+  pontuacao_total: number;
+  nota_minima_aprovacao: number;
   grupos?: Grupo[];
+  total_grupos?: number;
+  total_disciplinas?: number;
 }
 
 export interface Grupo {
@@ -86,6 +93,7 @@ export interface Grupo {
   ordem: number;
   questoes_prova: number;
   peso: number;
+  nota_minima_grupo?: number;
   disciplinas?: Disciplina[];
 }
 
@@ -96,6 +104,8 @@ export interface Disciplina {
   grupo_id: string;
   tipo: TipoDisciplina;
   ordem: number;
+  peso?: number;
+  questoes_estimadas?: number;
   arquivado_em?: string | null;
   topicos?: Topico[];
   fase_atual?: FaseNumero;

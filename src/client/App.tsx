@@ -26,6 +26,7 @@ export const App: React.FC = () => {
 
   // Modo sub-tela de edição de edital no mentor
   const [mentorSubScreen, setMentorSubScreen] = useState<'estrutura' | 'parser'>('estrutura');
+  const [selectedEditalId, setSelectedEditalId] = useState('edital_cgu');
 
   // Identificação do Mentorado
   const [matriculaId, setMatriculaId] = useState('mat_marina_cgu');
@@ -76,9 +77,15 @@ export const App: React.FC = () => {
           return <MentorPainel onAbrirConvite={() => setTabMentor('convites')} />;
         case 'editais':
           if (mentorSubScreen === 'parser') {
-            return <EditalParser onSalvo={() => setMentorSubScreen('estrutura')} />;
+            return <EditalParser editalId={selectedEditalId} onSalvo={() => setMentorSubScreen('estrutura')} />;
           }
-          return <EstruturaEdital onAdicionarDisciplina={() => setMentorSubScreen('parser')} />;
+          return (
+            <EstruturaEdital
+              editalId={selectedEditalId}
+              onSelectEdital={setSelectedEditalId}
+              onAdicionarDisciplina={() => setMentorSubScreen('parser')}
+            />
+          );
         case 'ciclos':
           return <PlanejarCiclo matriculaId={matriculaId} onPublicado={() => setTabMentor('mentorados')} />;
         case 'convites':

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Send, Check, BarChart2, Shield, Settings2 } from 'lucide-react';
+import { ArrowLeft, Send, Check, BarChart2, Shield, Settings2, BookOpen } from 'lucide-react';
 import { RelatorioReuniaoSemanal } from './RelatorioReuniaoSemanal.js';
 
 interface MentoradoDetalheProps {
@@ -29,6 +29,12 @@ export const MentoradoDetalhe: React.FC<MentoradoDetalheProps> = ({ mentoradoId,
   const [discOverrideNome, setDiscOverrideNome] = useState<string>('Estado, Democracia');
   const [faseNova, setFaseNova] = useState<number>(2);
   const [salvandoOverride, setSalvandoOverride] = useState(false);
+
+  // Modal de troca de Edital (HU-2.7)
+  const [showModalMudarEdital, setShowModalMudarEdital] = useState(false);
+  const [editaisDisponiveis, setEditaisDisponiveis] = useState<any[]>([]);
+  const [novoEditalId, setNovoEditalId] = useState('');
+  const [salvandoEdital, setSalvandoEdital] = useState(false);
 
   const fetchDetalhes = () => {
     fetch(`/api/mentorados/${mentoradoId}`)
@@ -123,6 +129,40 @@ export const MentoradoDetalhe: React.FC<MentoradoDetalheProps> = ({ mentoradoId,
     }
   };
 
+  const handleAbrirMudarEdital = async () => {
+    try {
+      const res = await fetch('/api/editais');
+      const data = await res.json();
+      setEditaisDisponiveis(data || []);
+      setNovoEditalId(dados?.matricula?.edital_id || data[0]?.id || '');
+      setShowModalMudarEdital(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSalvarEdital = async () => {
+    if (!novoEditalId) return;
+    setSalvandoEdital(true);
+    try {
+      await fetch('/api/matriculas/atribuir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mentoradoId,
+          editalId: novoEditalId,
+          mentorId: 'usr_mentor_gleyson',
+        }),
+      });
+      setShowModalMudarEdital(false);
+      fetchDetalhes();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSalvandoEdital(false);
+    }
+  };
+
   if (loading) {
     return <div className="p-8 text-center text-[#5B607A]">Carregando dados do aluno...</div>;
   }
@@ -159,6 +199,10 @@ export const MentoradoDetalhe: React.FC<MentoradoDetalheProps> = ({ mentoradoId,
         </div>
 
         <div className="flex gap-2">
+          <button onClick={handleAbrirMudarEdital} className="btn flex items-center gap-1.5">
+            <BookOpen size={15} />
+            <span>Trocar edital</span>
+          </button>
           <button onClick={() => setShowModalTempos(true)} className="btn flex items-center gap-1.5">
             <Settings2 size={15} />
             <span>Ajustar tempos</span>
@@ -438,6 +482,42 @@ export const MentoradoDetalhe: React.FC<MentoradoDetalheProps> = ({ mentoradoId,
               </button>
               <button onClick={handleSalvarOverrideFase} disabled={salvandoOverride} className="btn btn-primary">
                 {salvandoOverride ? 'Gravando...' : 'Confirmar e Auditar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Troca de Edital (HU-2.7) */}
+      {showModalMudarEdital && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 flex flex-col gap-4 shadow-xl">
+            <h3 className="d font-bold text-xl text-[#14162B]">Atribuir Edital ao Mentorado (HU-2.7)</h3>
+            <p className="text-xs text-[#5B607A]">
+              Selecione o edital ao qual este aluno será vinculado. A alteração de edital é registrada na trilha de auditoria do aluno.
+            </p>
+
+            <div>
+              <label className="lab block mb-1.5">Edital Cadastrado</label>
+              <select
+                value={novoEditalId}
+                onChange={e => setNovoEditalId(e.target.value)}
+                className="fld w-full text-sm font-semibold"
+              >
+                {editaisDisponiveis.map(ed => (
+                  <option key={ed.id} value={ed.id}>
+                    {ed.nome} ({ed.banca}) — {ed.metodo_cobranca === 'certo_errado' ? 'Certo/Errado' : 'Múltipla Escolha'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex gap-2 justify-end mt-3">
+              <button onClick={() => setShowModalMudarEdital(false)} className="btn">
+                Cancelar
+              </button>
+              <button onClick={handleSalvarEdital} disabled={salvandoEdital} className="btn btn-primary">
+                {salvandoEdital ? 'Salvando...' : 'Confirmar Matrícula'}
               </button>
             </div>
           </div>

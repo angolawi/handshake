@@ -232,12 +232,19 @@ export const DisciplinaTopicos: React.FC<DisciplinaTopicosProps> = ({
             <div />
             <div className="flex items-center justify-end gap-2 text-right">
               <div className="bar w-11">
-                <i style={{ width: `${disciplina?.porcentagem || 0}%` }} />
+                <i style={{ width: `${disciplina?.aproveitamento_liquido ?? disciplina?.porcentagem ?? 0}%` }} />
               </div>
               <span className="font-semibold text-[#1F3F66] tabular-nums">
                 {disciplina?.total_certas}/{disciplina?.total_resolvidas}
               </span>
-              <b className="text-sm text-[#17603A] min-w-[34px]">{disciplina?.porcentagem}%</b>
+              {disciplina?.pontuacao_liquida !== undefined && (
+                <span className="chip f1 text-[11px] font-bold">
+                  {disciplina.pontuacao_liquida} pts líq.
+                </span>
+              )}
+              <b className="text-sm text-[#17603A] min-w-[34px]">
+                {disciplina?.aproveitamento_liquido ?? disciplina?.porcentagem}%
+              </b>
             </div>
           </div>
 
