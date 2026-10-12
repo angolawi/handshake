@@ -6,16 +6,28 @@ CREATE TABLE IF NOT EXISTS usuario (
   nome TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   papel TEXT NOT NULL CHECK(papel IN ('mentor', 'mentorado')),
+  senha_hash TEXT,
   excluido_em TEXT
 );
 
 CREATE TABLE IF NOT EXISTS convite (
   id TEXT PRIMARY KEY,
   mentor_id TEXT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+  nome TEXT,
   email TEXT NOT NULL,
   token TEXT UNIQUE NOT NULL,
+  fim_mentoria TEXT,
+  dia_corte_semana INTEGER DEFAULT 2,
+  edital_id TEXT,
   expira_em TEXT NOT NULL,
   aceito_em TEXT
+);
+
+CREATE TABLE IF NOT EXISTS sessao_auth (
+  token TEXT PRIMARY KEY,
+  usuario_id TEXT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+  criado_em TEXT NOT NULL,
+  expira_em TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS mentorado (

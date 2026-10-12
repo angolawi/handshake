@@ -3,8 +3,18 @@ import multer from 'multer';
 import path from 'node:path';
 import fs from 'node:fs';
 import { dbHelper } from '../db/database.js';
-import { parseEditalText } from '../services/parserService.js';
-import { planFullCycle } from '../services/cycleService.js';
+import {
+  parseEditalText,
+  parseFullEdital,
+  cleanEditalNoise,
+  autoFixPastedWords,
+} from '../services/parserService.js';
+import {
+  planFullCycle,
+  analyzeCycleWarnings,
+  analyzeCycleClashes,
+  NEURO_MOTIVATION,
+} from '../services/cycleService.js';
 import {
   aggregateTopicMetrics,
   checkAndAdvanceDisciplinePhase,
@@ -13,7 +23,18 @@ import {
 } from '../services/aggregationService.js';
 import { recordAudit, getAuditsByMentorado } from '../services/auditService.js';
 import { deleteStudentData } from '../services/retentionService.js';
+import {
+  loginComSenha,
+  solicitarMagicLink,
+  validarMagicLinkToken,
+  aceitarConviteMentorado,
+  criarConvite,
+  listarConvites,
+  obterUsuarioPorSessao,
+  encerrarSessao,
+} from '../services/authService.js';
 import { Topico } from '../../shared/types.js';
+import { getMentoradoComprehensiveMetrics } from '../services/mentoradoMetricsService.js';
 
 export const apiRouter = Router();
 
@@ -49,6 +70,108 @@ apiRouter.get('/bootstrap', (req, res) => {
     mentorados,
     matriculaPadraoId: matriculaPadrao?.id || null,
   });
+});
+
+// --- AUTENTICAÇÃO E SESSÃO (HU-1.1, HU-1.2, HU-1.3) ---
+
+// Login com E-mail e Senha (para Mentor e Mentorado)
+apiRouter.post('/auth/login', (req, res) => {
+  const { email, senha } = req.body;
+  try {
+    const result = loginComSenha(email, senha);
+    res.json(result);
+  } catch (err: any) {
+    res.status(401).json({ error: err.message || 'Credenciais inválidas.' });
+  }
+});
+
+// Solicitação de Magic Link por E-mail (Onboarding ou Login sem senha)
+apiRouter.post('/auth/magic-link/solicitar', (req, res) => {
+  const { email } = req.body;
+  try {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const result = solicitarMagicLink(email, baseUrl);
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || 'Erro ao gerar Magic Link.' });
+  }
+});
+
+// Validação de token de Magic Link ou Convite
+apiRouter.get('/auth/magic-link/validar', (req, res) => {
+  const token = req.query.token as string;
+  try {
+    const result = validarMagicLinkToken(token);
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || 'Token inválido ou expirado.' });
+  }
+});
+
+// Conclusão de convite: Aceite LGPD e Criação de Senha Pessoal
+apiRouter.post('/auth/convite/aceitar', (req, res) => {
+  const { token, senha, consentimento, nome } = req.body;
+  try {
+    const result = aceitarConviteMentorado(token, senha, consentimento, nome);
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || 'Erro ao aceitar convite.' });
+  }
+});
+
+// Checagem de Sessão Ativa
+apiRouter.get('/auth/me', (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : (req.query.token as string);
+
+  if (!token) {
+    return res.status(401).json({ error: 'Não autenticado.' });
+  }
+
+  const usuario = obterUsuarioPorSessao(token);
+  if (!usuario) {
+    return res.status(401).json({ error: 'Sessão expirada ou inválida.' });
+  }
+
+  res.json({ usuario });
+});
+
+// Encerramento de Sessão (Logout)
+apiRouter.post('/auth/logout', (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : req.body.token;
+  if (token) {
+    encerrarSessao(token);
+  }
+  res.json({ ok: true });
+});
+
+// --- GESTÃO DE CONVITES DO MENTOR (HU-1.1) ---
+apiRouter.get('/convites', (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = token ? obterUsuarioPorSessao(token) : null;
+  const mentorId = user?.id || 'usr_mentor_gleyson';
+
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  const convites = listarConvites(mentorId, baseUrl);
+  res.json(convites);
+});
+
+apiRouter.post('/convites', (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = token ? obterUsuarioPorSessao(token) : null;
+  const mentorId = user?.id || 'usr_mentor_gleyson';
+
+  const { nome, email, fimMentoria, diaCorte, editalId } = req.body;
+  try {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const result = criarConvite(mentorId, { nome, email, fimMentoria, diaCorte, editalId }, baseUrl);
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || 'Erro ao criar convite.' });
+  }
 });
 
 // --- PAINEL DO MENTOR (HU-5.7, HU-1.1, HU-1.4) ---
@@ -203,12 +326,26 @@ apiRouter.get('/mentorados/:id', (req, res) => {
     id
   );
 
+  const metricas = getMentoradoComprehensiveMetrics(id);
+
   res.json({
     mentorado,
     matricula,
     auditorias,
     resumos,
+    metricas,
   });
+});
+
+// Endpoint dedicado para consultar métricas do mentorado
+apiRouter.get('/mentorados/:id/metricas', (req, res) => {
+  const { id } = req.params;
+  try {
+    const metricas = getMentoradoComprehensiveMetrics(id);
+    res.json(metricas);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Erro ao calcular métricas do mentorado' });
+  }
 });
 
 // Configuração de tempos do mentorado (HU-1.4)
@@ -358,21 +495,63 @@ apiRouter.put('/editais/:id', (req, res) => {
   res.json({ ok: true, edital: atualizado });
 });
 
-apiRouter.delete('/editais/:id', (req, res) => {
+apiRouter.get('/editais/:id/pode-excluir', (req, res) => {
   const { id } = req.params;
+  const edital = dbHelper.get<{ id: string; nome: string; banca: string }>(
+    `SELECT id, nome, banca FROM edital WHERE id = ?`,
+    id
+  );
+  if (!edital) {
+    return res.status(404).json({ error: 'Edital não encontrado' });
+  }
+
   const matriculasAtivas = dbHelper.get<{ count: number }>(
     `SELECT COUNT(*) as count FROM matricula WHERE edital_id = ? AND removido_em IS NULL`,
     id
   )?.count || 0;
 
-  if (matriculasAtivas > 0) {
+  const totalGrupos = dbHelper.get<{ count: number }>(
+    `SELECT COUNT(*) as count FROM grupo WHERE edital_id = ?`,
+    id
+  )?.count || 0;
+
+  const totalDisciplinas = dbHelper.get<{ count: number }>(
+    `SELECT COUNT(*) as count FROM disciplina WHERE edital_id = ?`,
+    id
+  )?.count || 0;
+
+  res.json({
+    edital,
+    matriculasAtivas,
+    totalGrupos,
+    totalDisciplinas,
+    podeExcluirDireto: matriculasAtivas === 0,
+  });
+});
+
+apiRouter.delete('/editais/:id', (req, res) => {
+  const { id } = req.params;
+  const forcar = req.query.forcar === 'true' || req.body?.forcar === true;
+
+  const matriculasAtivas = dbHelper.get<{ count: number }>(
+    `SELECT COUNT(*) as count FROM matricula WHERE edital_id = ? AND removido_em IS NULL`,
+    id
+  )?.count || 0;
+
+  if (matriculasAtivas > 0 && !forcar) {
     return res.status(400).json({
-      error: `Não é possível excluir o edital pois existem ${matriculasAtivas} mentorados matriculados nele.`,
+      error: `Não é possível excluir o edital diretamente pois existem ${matriculasAtivas} mentorado(s) matriculado(s) nele.`,
+      matriculasAtivas,
+      podeForcar: true,
     });
   }
 
+  // Desvincula convites que apontavam para este edital
+  dbHelper.run(`UPDATE convite SET edital_id = NULL WHERE edital_id = ?`, id);
+
+  // Remove o edital (cascata remove grupos, disciplinas, tópicos, matrículas e ciclos)
   dbHelper.run(`DELETE FROM edital WHERE id = ?`, id);
-  res.json({ ok: true });
+  res.json({ ok: true, idRemovido: id });
 });
 
 apiRouter.post('/editais/:id/grupos', (req, res) => {
@@ -475,11 +654,142 @@ apiRouter.get('/editais/:id/estrutura', (req, res) => {
   });
 });
 
+apiRouter.patch('/disciplinas/:id/mover-grupo', (req, res) => {
+  const { id: discId } = req.params;
+  const {
+    novoGrupoId,
+    novoGrupoNome,
+    novoGrupoQuestoes = 0,
+    novoGrupoPeso = 1.0,
+    novoGrupoCorte = 0.0,
+    ordem,
+  } = req.body;
+
+  try {
+    const disc = dbHelper.get<{ id: string; edital_id: string; grupo_id: string; nome: string }>(
+      `SELECT id, edital_id, grupo_id, nome FROM disciplina WHERE id = ?`,
+      discId
+    );
+    if (!disc) {
+      return res.status(404).json({ error: 'Disciplina não encontrada.' });
+    }
+
+    let targetGrupoId = novoGrupoId;
+
+    // Se for para criar um novo grupo sob demanda
+    if (novoGrupoNome || targetGrupoId === 'novo') {
+      const gNome = (novoGrupoNome || 'Novo Grupo').trim();
+      const maxOrdem = dbHelper.get<{ maxOrdem: number }>(
+        `SELECT COALESCE(MAX(ordem), 0) as maxOrdem FROM grupo WHERE edital_id = ?`,
+        disc.edital_id
+      )?.maxOrdem || 0;
+
+      const newGrpId = `grp_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+      dbHelper.run(
+        `INSERT INTO grupo (id, edital_id, nome, ordem, questoes_prova, peso, nota_minima_grupo)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        newGrpId,
+        disc.edital_id,
+        gNome,
+        maxOrdem + 1,
+        Number(novoGrupoQuestoes) || 0,
+        Number(novoGrupoPeso) || 1.0,
+        Number(novoGrupoCorte) || 0.0
+      );
+      targetGrupoId = newGrpId;
+    } else {
+      if (!targetGrupoId) {
+        return res.status(400).json({ error: 'ID do grupo de destino não fornecido.' });
+      }
+      // Valida grupo existente
+      const grp = dbHelper.get<{ id: string; edital_id: string; nome: string }>(
+        `SELECT id, edital_id, nome FROM grupo WHERE id = ?`,
+        targetGrupoId
+      );
+      if (!grp) {
+        return res.status(404).json({ error: 'Grupo de destino não encontrado.' });
+      }
+      if (grp.edital_id !== disc.edital_id) {
+        return res.status(400).json({ error: 'O grupo de destino não pertence ao mesmo edital da disciplina.' });
+      }
+    }
+
+    // Calcula ordem no grupo de destino
+    const destMaxOrdem = dbHelper.get<{ maxOrdem: number }>(
+      `SELECT COALESCE(MAX(ordem), 0) as maxOrdem FROM disciplina WHERE grupo_id = ?`,
+      targetGrupoId
+    )?.maxOrdem || 0;
+
+    const novaOrdem = typeof ordem === 'number' ? ordem : destMaxOrdem + 1;
+
+    // Atualiza grupo_id e ordem da disciplina
+    dbHelper.run(
+      `UPDATE disciplina SET grupo_id = ?, ordem = ? WHERE id = ?`,
+      targetGrupoId,
+      novaOrdem,
+      discId
+    );
+
+    // Incrementa versão do edital
+    dbHelper.run(`UPDATE edital SET versao = versao + 1 WHERE id = ?`, disc.edital_id);
+
+    const disciplinaAtualizada = dbHelper.get(`SELECT * FROM disciplina WHERE id = ?`, discId);
+    const grupoDestino = dbHelper.get(`SELECT * FROM grupo WHERE id = ?`, targetGrupoId);
+
+    res.json({
+      ok: true,
+      disciplina: disciplinaAtualizada,
+      grupo: grupoDestino,
+    });
+  } catch (err: any) {
+    console.error('Erro ao mover disciplina de grupo:', err);
+    res.status(500).json({ error: err.message || 'Erro ao mover disciplina de grupo.' });
+  }
+});
+
+apiRouter.put('/grupos/:id/reordenar-disciplinas', (req, res) => {
+  const { id: grupoId } = req.params;
+  const { disciplinaIds } = req.body;
+
+  if (!disciplinaIds || !Array.isArray(disciplinaIds)) {
+    return res.status(400).json({ error: 'Array de IDs de disciplinas não fornecido.' });
+  }
+
+  try {
+    const grp = dbHelper.get<{ id: string; edital_id: string }>(`SELECT id, edital_id FROM grupo WHERE id = ?`, grupoId);
+    if (!grp) return res.status(404).json({ error: 'Grupo não encontrado.' });
+
+    for (let i = 0; i < disciplinaIds.length; i++) {
+      dbHelper.run(
+        `UPDATE disciplina SET ordem = ? WHERE id = ? AND grupo_id = ?`,
+        i + 1,
+        disciplinaIds[i],
+        grupoId
+      );
+    }
+
+    dbHelper.run(`UPDATE edital SET versao = versao + 1 WHERE id = ?`, grp.edital_id);
+
+    res.json({ ok: true });
+  } catch (err: any) {
+    console.error('Erro ao reordenar disciplinas:', err);
+    res.status(500).json({ error: err.message || 'Erro ao reordenar disciplinas.' });
+  }
+});
+
 apiRouter.post('/editais/parser', (req, res) => {
-  const { text } = req.body;
+  const { text, autoFixPasted = false, cleanNoise = false } = req.body;
   if (!text) return res.status(400).json({ error: 'Texto não fornecido' });
 
-  const parsed = parseEditalText(text);
+  let processed = text;
+  if (cleanNoise) {
+    processed = cleanEditalNoise(processed);
+  }
+  if (autoFixPasted) {
+    processed = autoFixPastedWords(processed);
+  }
+
+  const parsed = parseFullEdital(processed);
   res.json(parsed);
 });
 
@@ -535,17 +845,241 @@ apiRouter.post('/editais/:id/salvar-disciplina', (req, res) => {
   res.json({ ok: true, disciplinaId: discId });
 });
 
+apiRouter.post('/editais/:id/salvar-lote', (req, res) => {
+  const { id: editalId } = req.params;
+  const { disciplinas, novoEditalNome, banca = 'CEBRASPE' } = req.body;
+
+  if (!disciplinas || !Array.isArray(disciplinas) || disciplinas.length === 0) {
+    return res.status(400).json({ error: 'Nenhuma disciplina fornecida para importação.' });
+  }
+
+  try {
+    let targetEditalId = editalId;
+    let edital = targetEditalId ? dbHelper.get<{ id: string }>(`SELECT id FROM edital WHERE id = ?`, targetEditalId) : null;
+
+    if (!edital) {
+      if (novoEditalNome || targetEditalId === 'novo') {
+        const novoId = `edital_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+        dbHelper.run(
+          `INSERT INTO edital (id, mentor_id, nome, banca, versao, metodo_cobranca, fator_penalidade)
+           VALUES (?, 'usr_mentor_gleyson', ?, ?, 1, 'certo_errado', 1.0)`,
+          novoId,
+          (novoEditalNome || 'Novo Edital').trim(),
+          banca.trim()
+        );
+        targetEditalId = novoId;
+        edital = { id: novoId };
+      } else {
+        edital = dbHelper.get<{ id: string }>(`SELECT id FROM edital ORDER BY id ASC LIMIT 1`);
+        if (edital) {
+          targetEditalId = edital.id;
+        } else {
+          const novoId = `edital_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+          dbHelper.run(
+            `INSERT INTO edital (id, mentor_id, nome, banca, versao, metodo_cobranca, fator_penalidade)
+             VALUES (?, 'usr_mentor_gleyson', 'Concurso CGU', 'CEBRASPE', 1, 'certo_errado', 1.0)`,
+            novoId
+          );
+          targetEditalId = novoId;
+          edital = { id: novoId };
+        }
+      }
+    }
+
+    // Mapeia grupos existentes por nome em minúsculas
+    const gruposExistentes = dbHelper.all<{ id: string; nome: string }>(
+      `SELECT id, nome FROM grupo WHERE edital_id = ? ORDER BY ordem ASC`,
+      targetEditalId
+    );
+    const grupoMap = new Map<string, string>();
+    for (const g of gruposExistentes) {
+      grupoMap.set(g.nome.toLowerCase().trim(), g.id);
+    }
+
+    let totalDisciplinasCriadas = 0;
+    let totalTopicosCriados = 0;
+
+    for (let dIdx = 0; dIdx < disciplinas.length; dIdx++) {
+      const item = disciplinas[dIdx];
+      if (!item.nome || !item.nome.trim()) continue;
+
+      let grupoId = item.grupoId;
+      if (!grupoId && item.nomeGrupo) {
+        const gNorm = item.nomeGrupo.toLowerCase().trim();
+        if (grupoMap.has(gNorm)) {
+          grupoId = grupoMap.get(gNorm)!;
+        } else {
+          // Cria grupo no edital
+          const novoGId = `grp_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+          const proximaOrdem =
+            dbHelper.get<{ maxOrd: number }>(
+              `SELECT COALESCE(MAX(ordem), 0) + 1 as maxOrd FROM grupo WHERE edital_id = ?`,
+              targetEditalId
+            )?.maxOrd || (gruposExistentes.length + 1);
+
+          const pesoGrupo = /espec[ií]fic/i.test(item.nomeGrupo) ? 2.0 : 1.0;
+          const questoesGrupo = /espec[ií]fic/i.test(item.nomeGrupo) ? 70 : 40;
+
+          dbHelper.run(
+            `INSERT INTO grupo (id, edital_id, nome, ordem, questoes_prova, peso, nota_minima_grupo)
+             VALUES (?, ?, ?, ?, ?, ?, 0.0)`,
+            novoGId,
+            targetEditalId,
+            item.nomeGrupo.trim(),
+            proximaOrdem,
+            questoesGrupo,
+            pesoGrupo
+          );
+          grupoMap.set(gNorm, novoGId);
+          grupoId = novoGId;
+        }
+      }
+
+      if (!grupoId) {
+        if (gruposExistentes.length > 0) {
+          grupoId = gruposExistentes[0].id;
+        } else {
+          const defaultGId = `grp_${Date.now()}`;
+          dbHelper.run(
+            `INSERT INTO grupo (id, edital_id, nome, ordem, questoes_prova, peso)
+             VALUES (?, ?, 'Conhecimentos Básicos', 1, 40, 1.0)`,
+            defaultGId,
+            targetEditalId
+          );
+          grupoId = defaultGId;
+        }
+      }
+
+      const discId = crypto.randomUUID();
+      const discOrdem =
+        dbHelper.get<{ maxOrd: number }>(
+          `SELECT COALESCE(MAX(ordem), 0) + 1 as maxOrd FROM disciplina WHERE grupo_id = ?`,
+          grupoId
+        )?.maxOrd || dIdx + 1;
+
+      const pesoDisc = item.peso || (grupoMap.get(item.nomeGrupo?.toLowerCase().trim() || '') ? 1.0 : 1.0);
+
+      dbHelper.run(
+        `INSERT INTO disciplina (id, edital_id, nome, grupo_id, tipo, ordem, peso, questoes_estimadas)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        discId,
+        targetEditalId,
+        item.nome.trim(),
+        grupoId,
+        item.tipo || 'decoreba',
+        discOrdem,
+        pesoDisc,
+        item.questoesEstimadas || 10
+      );
+      totalDisciplinasCriadas++;
+
+      // Inserção recursiva de tópicos
+      function insertTopicNodes(nodes: any[], paiId: string | null = null) {
+        if (!nodes) return;
+        for (let i = 0; i < nodes.length; i++) {
+          const node = nodes[i];
+          const topicId = crypto.randomUUID();
+          dbHelper.run(
+            `INSERT INTO topico (id, disciplina_id, pai_id, numeracao, texto, ordem)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            topicId,
+            discId,
+            paiId,
+            node.numeracao || `${i + 1}`,
+            node.texto || '',
+            node.ordem || i + 1
+          );
+          totalTopicosCriados++;
+
+          if (node.filhos && node.filhos.length > 0) {
+            insertTopicNodes(node.filhos, topicId);
+          }
+        }
+      }
+
+      if (item.topicos && item.topicos.length > 0) {
+        insertTopicNodes(item.topicos, null);
+      }
+    }
+
+    // Incrementa a versão do edital
+    dbHelper.run(`UPDATE edital SET versao = versao + 1 WHERE id = ?`, targetEditalId);
+
+    res.json({
+      ok: true,
+      editalId: targetEditalId,
+      disciplinasCriadas: totalDisciplinasCriadas,
+      topicosCriados: totalTopicosCriados,
+    });
+  } catch (err: any) {
+    console.error('Erro ao salvar lote de disciplinas no edital:', err);
+    res.status(500).json({ error: err.message || 'Erro ao processar e salvar matérias no banco de dados.' });
+  }
+});
+
+
 // --- CICLOS (HU-3.1 a 3.3) ---
 apiRouter.post('/ciclos/sugerir', (req, res) => {
-  const { editalId, slotsPorDia = 3, duracaoDias = 30 } = req.body;
+  const { editalId, matriculaId, slotsPorDia = 3, duracaoDias = 30 } = req.body;
 
-  const disciplinas = dbHelper.all<{ id: string; nome: string; tipo: any }>(
-    `SELECT id, nome, tipo FROM disciplina WHERE edital_id = ? AND arquivado_em IS NULL ORDER BY ordem ASC`,
-    editalId
+  let targetEditalId = editalId;
+  if (!targetEditalId && matriculaId) {
+    const mat = dbHelper.get<{ edital_id: string }>(
+      `SELECT edital_id FROM matricula WHERE id = ?`,
+      matriculaId
+    );
+    if (mat) targetEditalId = mat.edital_id;
+  }
+  if (!targetEditalId) {
+    targetEditalId = 'edital_cgu';
+  }
+
+  const edital = dbHelper.get<{ nome: string }>(
+    `SELECT nome FROM edital WHERE id = ?`,
+    targetEditalId
   );
 
-  const plan = planFullCycle(disciplinas, duracaoDias, slotsPorDia);
-  res.json(plan);
+  const disciplinas = dbHelper.all<{ id: string; nome: string; tipo: any; peso: number }>(
+    `SELECT id, nome, tipo, COALESCE(peso, 1.0) as peso FROM disciplina WHERE edital_id = ? AND arquivado_em IS NULL ORDER BY ordem ASC`,
+    targetEditalId
+  );
+
+  const numSlots = Number(slotsPorDia) || 3;
+  const plan = planFullCycle(disciplinas, duracaoDias, numSlots);
+  res.json({
+    ...plan,
+    editalId: targetEditalId,
+    editalNome: edital?.nome || 'Edital do Concurso',
+    todasDisciplinas: disciplinas,
+  });
+});
+
+apiRouter.post('/ciclos/analisar', (req, res) => {
+  const { slots = [], slotsPorDia = 3, duracaoDias = 30 } = req.body;
+  const numSlots = Number(slotsPorDia) || 3;
+
+  const avisos = analyzeCycleWarnings(slots, numSlots, duracaoDias);
+  const choques = analyzeCycleClashes(slots);
+  const totalDecoreba = slots.filter((s: any) => s.tipo === 'decoreba').length;
+  const totalRaciocinio = slots.filter((s: any) => s.tipo === 'raciocinio').length;
+
+  const diasPorVolta = Math.max(1, numSlots);
+  const voltasPorSemana = Number((6 / diasPorVolta).toFixed(1));
+  const metaSemanalAtingida = voltasPorSemana >= 2.0;
+
+  res.json({
+    avisos,
+    choques,
+    totalSlots: slots.length,
+    totalDecoreba,
+    totalRaciocinio,
+    equilibrado: choques.length === 0,
+    principioInterleaving: NEURO_MOTIVATION.interleaving_principio,
+    tamanhoMatriz: `${numSlots}x${numSlots}`,
+    diasPorVolta,
+    voltasPorSemana,
+    metaSemanalAtingida,
+  });
 });
 
 apiRouter.post('/ciclos/publicar', (req, res) => {
@@ -838,6 +1372,120 @@ apiRouter.post('/matriculas/:id/controle/cor-rodada', (req, res) => {
   );
 
   res.json({ ok: true });
+});
+
+// Alternar preenchimento de célula na matriz de controle (marcar/desmarcar disciplina)
+apiRouter.post('/matriculas/:id/controle/toggle-celula', (req, res) => {
+  const { id: matriculaId } = req.params;
+  const { slotId, data, cor } = req.body;
+
+  if (!slotId || !data) {
+    return res.status(400).json({ error: 'slotId e data são obrigatórios' });
+  }
+
+  const ciclo = dbHelper.get<{ id: string }>(
+    `SELECT id FROM ciclo WHERE matricula_id = ? ORDER BY numero DESC LIMIT 1`,
+    matriculaId
+  );
+  if (!ciclo) return res.status(404).json({ error: 'Ciclo não encontrado' });
+
+  const rodada = dbHelper.get<{ id: string; cor: string }>(
+    `SELECT id, cor FROM rodada WHERE ciclo_id = ? ORDER BY numero DESC LIMIT 1`,
+    ciclo.id
+  );
+  if (!rodada) return res.status(404).json({ error: 'Rodada não encontrada' });
+
+  const existente = dbHelper.get<{ id: string }>(
+    `SELECT id FROM controle_celula WHERE rodada_id = ? AND slot_id = ? AND data = ?`,
+    rodada.id,
+    slotId,
+    data
+  );
+
+  if (existente) {
+    dbHelper.run(`DELETE FROM controle_celula WHERE id = ?`, existente.id);
+    return res.json({ ok: true, marcado: false });
+  } else {
+    const corFinal = cor || rodada.cor || '#8EC5FF';
+    const agora = new Date().toISOString();
+    dbHelper.run(
+      `INSERT INTO controle_celula (id, rodada_id, slot_id, data, cor, feito_em)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      crypto.randomUUID(),
+      rodada.id,
+      slotId,
+      data,
+      corFinal,
+      agora
+    );
+    return res.json({ ok: true, marcado: true, cor: corFinal });
+  }
+});
+
+// Alternar revisão noturna na matriz de controle
+apiRouter.post('/matriculas/:id/controle/toggle-revisao-noturna', (req, res) => {
+  const { id: matriculaId } = req.params;
+  const { data } = req.body;
+
+  if (!data) return res.status(400).json({ error: 'data é obrigatória' });
+
+  const mat = dbHelper.get<{ mentorado_id: string }>(`SELECT mentorado_id FROM matricula WHERE id = ?`, matriculaId);
+  if (!mat) return res.status(404).json({ error: 'Matrícula não encontrada' });
+
+  const existente = dbHelper.get<{ id: string; revisao_noturna: number }>(
+    `SELECT id, revisao_noturna FROM controle_dia WHERE mentorado_id = ? AND data = ?`,
+    mat.mentorado_id,
+    data
+  );
+
+  if (existente && existente.revisao_noturna === 1) {
+    dbHelper.run(`UPDATE controle_dia SET revisao_noturna = 0 WHERE id = ?`, existente.id);
+    return res.json({ ok: true, feito: false });
+  } else {
+    dbHelper.run(
+      `INSERT INTO controle_dia (id, mentorado_id, data, revisao_noturna)
+       VALUES (?, ?, ?, 1)
+       ON CONFLICT(mentorado_id, data) DO UPDATE SET revisao_noturna = 1`,
+      crypto.randomUUID(),
+      mat.mentorado_id,
+      data
+    );
+    return res.json({ ok: true, feito: true });
+  }
+});
+
+// Alternar revisão mensal na matriz de controle
+apiRouter.post('/matriculas/:id/controle/toggle-revisao-mensal', (req, res) => {
+  const { id: matriculaId } = req.params;
+  const { mesReferencia, data } = req.body;
+
+  const mesRef = mesReferencia || (data ? data.slice(0, 7) : null);
+  if (!mesRef) return res.status(400).json({ error: 'mesReferencia ou data é obrigatório' });
+
+  const mat = dbHelper.get<{ mentorado_id: string }>(`SELECT mentorado_id FROM matricula WHERE id = ?`, matriculaId);
+  if (!mat) return res.status(404).json({ error: 'Matrícula não encontrada' });
+
+  const existente = dbHelper.get<{ id: string }>(
+    `SELECT id FROM revisao_mensal WHERE mentorado_id = ? AND mes_referencia = ?`,
+    mat.mentorado_id,
+    mesRef
+  );
+
+  if (existente) {
+    dbHelper.run(`DELETE FROM revisao_mensal WHERE id = ?`, existente.id);
+    return res.json({ ok: true, feito: false });
+  } else {
+    const agora = new Date().toISOString();
+    dbHelper.run(
+      `INSERT INTO revisao_mensal (id, mentorado_id, mes_referencia, feita_em)
+       VALUES (?, ?, ?, ?)`,
+      crypto.randomUUID(),
+      mat.mentorado_id,
+      mesRef,
+      agora
+    );
+    return res.json({ ok: true, feito: true });
+  }
 });
 
 // --- SESSÃO DE ESTUDO & CRONÔMETRO (HU-3.4 a 3.10) ---

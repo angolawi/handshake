@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Header, ViewMode } from './components/common/Header.js';
+import { Header, ViewMode, HeaderUser } from './components/common/Header.js';
 import { Sidebar } from './components/common/Sidebar.js';
 import { BottomNav } from './components/common/BottomNav.js';
+
+// Telas de Autenticação e Onboarding
+import { LandingPage } from './components/landing/LandingPage.js';
+import { LoginView } from './components/auth/LoginView.js';
+import { ConviteAceitarView } from './components/auth/ConviteAceitarView.js';
 
 // Telas do Mentorado
 import { SessaoEstudo } from './components/mentorado/SessaoEstudo.js';
@@ -16,11 +21,32 @@ import { EditalParser } from './components/mentor/EditalParser.js';
 import { PlanejarCiclo } from './components/mentor/PlanejarCiclo.js';
 import { ConvitesGerenciar } from './components/mentor/ConvitesGerenciar.js';
 
+interface UserSession extends HeaderUser {
+  id: string;
+  matriculaId?: string;
+  mentoradoId?: string;
+  editalId?: string;
+}
+
 export const App: React.FC = () => {
-  const [currentRole, setCurrentRole] = useState<'mentor' | 'mentorado'>('mentorado');
+  // Autenticação e Sessão
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
+  const [carregandoAuth, setCarregandoAuth] = useState(true);
+  const [inviteToken, setInviteToken] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('token');
+    }
+    return null;
+  });
+
+  // Modo de visualização para visitantes não autenticados
+  const [publicView, setPublicView] = useState<'landing' | 'login'>('landing');
+
+  // Modo de visualização de tela (auto, desktop ou mobile simulado)
   const [viewMode, setViewMode] = useState<ViewMode>('auto');
   
-  // Abas
+  // Abas segregadas por papel
   const [tabMentorado, setTabMentorado] = useState('hoje');
   const [tabMentor, setTabMentor] = useState('mentorados');
 
@@ -28,25 +54,133 @@ export const App: React.FC = () => {
   const [mentorSubScreen, setMentorSubScreen] = useState<'estrutura' | 'parser'>('estrutura');
   const [selectedEditalId, setSelectedEditalId] = useState('edital_cgu');
 
-  // Identificação do Mentorado
+  // Identificação do Mentorado (para carregar ciclos e sessões)
   const [matriculaId, setMatriculaId] = useState('mat_marina_cgu');
-  const [mentoradoNome, setMentoradoNome] = useState('Marina R.');
 
+  // Checagem de sessão ativa no carregamento inicial
   useEffect(() => {
-    fetch('/api/bootstrap')
-      .then(res => res.json())
+    const token = localStorage.getItem('handshake_token');
+    if (!token) {
+      setCarregandoAuth(false);
+      return;
+    }
+
+    fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Sessão expirada');
+        return res.json();
+      })
       .then(data => {
-        if (data.matriculaPadraoId) {
-          setMatriculaId(data.matriculaPadraoId);
-        }
-        if (data.mentorados && data.mentorados.length > 0) {
-          setMentoradoNome(data.mentorados[0].nome);
+        if (data.usuario) {
+          setCurrentUser(data.usuario);
+          if (data.usuario.matriculaId) {
+            setMatriculaId(data.usuario.matriculaId);
+          }
+          if (data.usuario.editalId) {
+            setSelectedEditalId(data.usuario.editalId);
+          }
+        } else {
+          localStorage.removeItem('handshake_token');
+          setCurrentUser(null);
         }
       })
-      .catch(console.error);
+      .catch(() => {
+        localStorage.removeItem('handshake_token');
+        setCurrentUser(null);
+      })
+      .finally(() => {
+        setCarregandoAuth(false);
+      });
   }, []);
 
+  const limparTokenUrl = () => {
+    setInviteToken(null);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('token');
+      const newPath = url.pathname === '/convite' || url.pathname === '/entrar' ? '/' : url.pathname;
+      window.history.replaceState({}, '', newPath + (url.search ? url.search : ''));
+    }
+  };
+
+  const handleLoginSucesso = (token: string, usuario: any) => {
+    localStorage.setItem('handshake_token', token);
+    setCurrentUser(usuario);
+    if (usuario.matriculaId) {
+      setMatriculaId(usuario.matriculaId);
+    }
+    if (usuario.editalId) {
+      setSelectedEditalId(usuario.editalId);
+    }
+    limparTokenUrl();
+  };
+
+  const handleLogout = () => {
+    const token = localStorage.getItem('handshake_token');
+    if (token) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ token }),
+      }).catch(console.error);
+    }
+    localStorage.removeItem('handshake_token');
+    setCurrentUser(null);
+    setPublicView('landing');
+    setTabMentorado('hoje');
+    setTabMentor('mentorados');
+  };
+
+  // Se estiver carregando sessão existente
+  if (carregandoAuth) {
+    return (
+      <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center p-4">
+        <div className="text-center flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-3 border-[#2F2A9E] border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm font-medium text-[#5B607A]">Verificando autenticação...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Se houver um token de convite na URL, exibe tela de ativação/onboarding
+  if (inviteToken) {
+    return (
+      <ConviteAceitarView
+        token={inviteToken}
+        onLoginSucesso={handleLoginSucesso}
+        onVoltarLogin={limparTokenUrl}
+      />
+    );
+  }
+
+  // Se não estiver autenticado, exibe Landing Page ou tela de Login
+  if (!currentUser) {
+    if (publicView === 'landing') {
+      return (
+        <LandingPage
+          onEntrar={() => setPublicView('login')}
+        />
+      );
+    }
+    return (
+      <LoginView
+        onLoginSucesso={handleLoginSucesso}
+        onAbrirConviteToken={(token) => setInviteToken(token)}
+        onVoltarLanding={() => setPublicView('landing')}
+      />
+    );
+  }
+
+  // Papel estritamente determinado pelo usuário autenticado
+  const currentRole = currentUser.papel;
   const activeTab = currentRole === 'mentor' ? tabMentor : tabMentorado;
+
   const handleTabChange = (tab: string) => {
     if (currentRole === 'mentor') {
       setTabMentor(tab);
@@ -56,21 +190,29 @@ export const App: React.FC = () => {
     }
   };
 
-  // Renderiza a tela ativa
+  // Renderiza o conteúdo exclusivo do papel autenticado
   const renderContent = (isMobileView: boolean) => {
     if (currentRole === 'mentorado') {
-      switch (tabMentorado) {
-        case 'hoje':
-          return <SessaoEstudo matriculaId={matriculaId} isMobile={isMobileView} onConcluirSessao={() => setTabMentorado('controle')} />;
-        case 'edital':
-          return <EditalAluno matriculaId={matriculaId} isMobile={isMobileView} />;
-        case 'controle':
-          return <ControleMatriz matriculaId={matriculaId} isMobile={isMobileView} />;
-        case 'revisoes':
-          return <RevisaoHub matriculaId={matriculaId} />;
-        default:
-          return <SessaoEstudo matriculaId={matriculaId} isMobile={isMobileView} />;
-      }
+      return (
+        <>
+          <div className={tabMentorado === 'hoje' ? 'block' : 'hidden'}>
+            <SessaoEstudo
+              matriculaId={matriculaId}
+              isMobile={isMobileView}
+              onConcluirSessao={() => setTabMentorado('controle')}
+            />
+          </div>
+          <div className={tabMentorado === 'edital' ? 'block' : 'hidden'}>
+            {tabMentorado === 'edital' && <EditalAluno matriculaId={matriculaId} isMobile={isMobileView} />}
+          </div>
+          <div className={tabMentorado === 'controle' ? 'block' : 'hidden'}>
+            {tabMentorado === 'controle' && <ControleMatriz matriculaId={matriculaId} isMobile={isMobileView} />}
+          </div>
+          <div className={tabMentorado === 'revisoes' ? 'block' : 'hidden'}>
+            {tabMentorado === 'revisoes' && <RevisaoHub matriculaId={matriculaId} />}
+          </div>
+        </>
+      );
     } else {
       switch (tabMentor) {
         case 'mentorados':
@@ -91,7 +233,7 @@ export const App: React.FC = () => {
         case 'convites':
           return <ConvitesGerenciar />;
         default:
-          return <MentorPainel />;
+          return <MentorPainel onAbrirConvite={() => setTabMentor('convites')} />;
       }
     }
   };
@@ -101,11 +243,10 @@ export const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-[#E5E7EB] flex flex-col">
         <Header
-          currentRole={currentRole}
-          onRoleChange={setCurrentRole}
+          currentUser={currentUser}
+          onLogout={handleLogout}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
-          currentMentoradoNome={mentoradoNome}
         />
         <div className="flex-1 flex items-center justify-center p-4">
           {/* Mockup de dispositivo mobile 390px x 844px */}
@@ -130,15 +271,14 @@ export const App: React.FC = () => {
     );
   }
 
-  // Se o usuário selecionou visualização Desktop forçada ou Auto-responsivo
+  // Visualização Desktop ou Auto-responsivo
   return (
     <div className="min-h-screen bg-[#F5F6FA] flex flex-col">
       <Header
-        currentRole={currentRole}
-        onRoleChange={setCurrentRole}
+        currentUser={currentUser}
+        onLogout={handleLogout}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        currentMentoradoNome={mentoradoNome}
       />
 
       <div className="flex-1 flex min-w-0">

@@ -304,3 +304,53 @@ export interface QuestoesSemanais {
   total_resolvidas: number;
   media_geral: number;
 }
+
+// Tipos para Parser de Editais e Importação em Lote
+export interface ParsedTopicNodeDTO {
+  numeracao: string;
+  texto: string;
+  ordem: number;
+  warnings?: {
+    tipo: 'palavra_colada';
+    original: string;
+    sugestao: string;
+  }[];
+  filhos: ParsedTopicNodeDTO[];
+}
+
+export interface ParsedDisciplineDTO {
+  idTemp?: string;
+  nome: string;
+  grupoSugerido?: string;
+  tipoSugerido?: TipoDisciplina;
+  topicos: ParsedTopicNodeDTO[];
+  totalTopicos?: number;
+  totalAvisos?: number;
+  rawText: string;
+}
+
+export interface ParsedFullEditalDTO {
+  grupos: {
+    nome: string;
+    disciplinas: ParsedDisciplineDTO[];
+  }[];
+  disciplinas: ParsedDisciplineDTO[];
+  totalDisciplinas: number;
+  totalTopicos: number;
+  totalAvisos: number;
+}
+
+export interface SalvarLoteDisciplinaItem {
+  nome: string;
+  grupoId?: string;
+  nomeGrupo?: string;
+  tipo: TipoDisciplina;
+  topicos: ParsedTopicNodeDTO[];
+  peso?: number;
+  questoesEstimadas?: number;
+}
+
+export interface SalvarLoteEditalRequest {
+  disciplinas: SalvarLoteDisciplinaItem[];
+}
+

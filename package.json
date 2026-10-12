@@ -4,7 +4,7 @@
   "description": "Plataforma de Controle e Mentoria de Estudos baseada na metodologia Gleyson Azevedo",
   "type": "module",
   "scripts": {
-    "dev": "tsx src/server/index.ts",
+    "dev": "tsx watch src/server/index.ts",
     "build": "vite build && tsc -p tsconfig.server.json",
     "test": "vitest run",
     "seed": "tsx src/server/db/seed.ts"

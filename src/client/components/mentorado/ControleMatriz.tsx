@@ -7,6 +7,32 @@ interface ControleMatrizProps {
   isMobile?: boolean;
 }
 
+// Função robusta que determina se uma data pertence ao primeiro fim de semana do seu mês
+function isPrimeiroFimDeSemanaDoMes(dataObj: Date): boolean {
+  const diaSemana = dataObj.getDay(); // 0 = Domingo, 6 = Sábado
+  if (diaSemana !== 0 && diaSemana !== 6) return false;
+
+  const diaMes = dataObj.getDate();
+  const ano = dataObj.getFullYear();
+  const mes = dataObj.getMonth();
+
+  // Encontra o dia do primeiro sábado do mês
+  const primeiroDiaMes = new Date(ano, mes, 1);
+  const diaSemanaPrimeiro = primeiroDiaMes.getDay(); // 0 a 6
+  // Dias até o primeiro sábado (dia da semana 6):
+  const diaPrimeiroSabado = 1 + ((6 - diaSemanaPrimeiro + 7) % 7);
+
+  // O primeiro fim de semana compreende:
+  // 1. O primeiro sábado do mês
+  // 2. O domingo imediatamente consecutivo ao primeiro sábado
+  // 3. Se o mês começou em um domingo (dia 1), esse domingo também é fim de semana inicial
+  if (diaSemana === 6 && diaMes === diaPrimeiroSabado) return true;
+  if (diaSemana === 0 && diaMes === diaPrimeiroSabado + 1) return true;
+  if (diaSemana === 0 && diaMes === 1) return true;
+
+  return false;
+}
+
 export const ControleMatriz: React.FC<ControleMatrizProps> = ({ matriculaId, isMobile = false }) => {
   const [loading, setLoading] = useState(true);
   const [ciclo, setCiclo] = useState<any>(null);
@@ -57,20 +83,100 @@ export const ControleMatriz: React.FC<ControleMatrizProps> = ({ matriculaId, isM
     }
   };
 
+  // Alterna marcação da célula de disciplina na grade
+  const handleToggleCelula = async (slotId: string, dataStr: string) => {
+    const key = `${slotId}_${dataStr}`;
+    const jaEstudado = celulas.some(c => c.slot_id === slotId && c.data === dataStr);
+
+    // Atualização otimista
+    setCelulas(prev => {
+      if (jaEstudado) {
+        return prev.filter(c => !(c.slot_id === slotId && c.data === dataStr));
+      } else {
+        return [...prev, { slot_id: slotId, data: dataStr, cor: corSelecionada }];
+      }
+    });
+
+    try {
+      const res = await fetch(`/api/matriculas/${matriculaId}/controle/toggle-celula`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slotId, data: dataStr, cor: corSelecionada }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        fetchControle();
+      }
+    } catch {
+      fetchControle();
+    }
+  };
+
+  // Alterna marcação da revisão noturna
+  const handleToggleRevisaoNoturna = async (dataStr: string) => {
+    const fez = revisaoDias.some(r => r.data === dataStr && r.revisao_noturna === 1);
+
+    setRevisaoDias(prev => {
+      if (fez) {
+        return prev.map(r => r.data === dataStr ? { ...r, revisao_noturna: 0 } : r);
+      } else {
+        const existe = prev.some(r => r.data === dataStr);
+        if (existe) {
+          return prev.map(r => r.data === dataStr ? { ...r, revisao_noturna: 1 } : r);
+        } else {
+          return [...prev, { data: dataStr, revisao_noturna: 1 }];
+        }
+      }
+    });
+
+    try {
+      await fetch(`/api/matriculas/${matriculaId}/controle/toggle-revisao-noturna`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: dataStr }),
+      });
+    } catch {
+      fetchControle();
+    }
+  };
+
+  // Alterna marcação da revisão mensal
+  const handleToggleRevisaoMensal = async (dataStr: string) => {
+    const mesRef = dataStr.slice(0, 7);
+    const fez = revisoesMensais.some(r => r.mes_referencia === mesRef);
+
+    setRevisoesMensais(prev => {
+      if (fez) {
+        return prev.filter(r => r.mes_referencia !== mesRef);
+      } else {
+        return [...prev, { mes_referencia: mesRef, feita_em: dataStr }];
+      }
+    });
+
+    try {
+      await fetch(`/api/matriculas/${matriculaId}/controle/toggle-revisao-mensal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: dataStr, mesReferencia: mesRef }),
+      });
+    } catch {
+      fetchControle();
+    }
+  };
+
   if (loading) {
     return <div className="p-8 text-center text-[#5B607A]">Carregando grade de controle...</div>;
   }
 
-  // Gera os 30 dias a partir da data de início do ciclo
-  const dataInicioStr = ciclo?.inicio || '2026-10-09';
+  // Gera os 30 dias de forma segura e imune a offset de UTC
+  const [anoIni, mesIni, diaIni] = (ciclo?.inicio || '2026-10-09').split('-').map(Number);
   const diasCols: { dataStr: string; label: string; isFimDeSemana: boolean; isReuniao: boolean; isHoje: boolean }[] = [];
-  const dCursor = new Date(dataInicioStr);
-  const hojeStr = new Date().toISOString().slice(0, 10);
+  const hoje = new Date();
+  const hojeStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
 
   for (let i = 0; i < (ciclo?.duracao_dias || 30); i++) {
-    const curDate = new Date(dCursor);
-    curDate.setDate(curDate.getDate() + i);
-    const dStr = curDate.toISOString().slice(0, 10);
+    const curDate = new Date(anoIni, mesIni - 1, diaIni + i);
+    const dStr = `${curDate.getFullYear()}-${String(curDate.getMonth() + 1).padStart(2, '0')}-${String(curDate.getDate()).padStart(2, '0')}`;
     const dayOfWeek = curDate.getDay();
     const diaMes = curDate.getDate();
     const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
@@ -116,7 +222,7 @@ export const ControleMatriz: React.FC<ControleMatrizProps> = ({ matriculaId, isM
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3.5 h-3.5 rounded inline-block" style={{ backgroundColor: corSelecionada }} />
-            <span>estudado</span>
+            <span>estudado (clique para marcar)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3.5 h-3.5 rounded bg-[#E4E6EE] inline-block border border-[#D5D8E2]" />
@@ -136,7 +242,7 @@ export const ControleMatriz: React.FC<ControleMatrizProps> = ({ matriculaId, isM
             Cor da rodada {rodada?.numero || 1}
           </div>
           <div className="text-xs text-[#5B607A] mt-0.5">
-            Vale até o fim da rodada para todas as matérias concluídas.
+            Vale até o fim da rodada para todas as matérias marcadas.
           </div>
         </div>
 
@@ -180,7 +286,7 @@ export const ControleMatriz: React.FC<ControleMatrizProps> = ({ matriculaId, isM
             })}
           </div>
 
-          {/* Linhas das Disciplinas do Ciclo */}
+          {/* Linhas das Disciplinas do Ciclo (Clicáveis para Marcar/Desmarcar) */}
           {slots.map(s => {
             const isDec = s.tipo === 'decoreba';
             return (
@@ -199,12 +305,14 @@ export const ControleMatriz: React.FC<ControleMatrizProps> = ({ matriculaId, isM
                   return (
                     <div
                       key={dia.dataStr}
-                      className={`cl transition-colors ${
+                      onClick={() => handleToggleCelula(s.id, dia.dataStr)}
+                      title={`${s.nome} · ${dia.label} ${isDone ? '(Concluído - clique para desmarcar)' : '(Clique para marcar como estudado)'}`}
+                      className={`cl transition-all cursor-pointer hover:ring-2 hover:ring-[#4338CA]/30 ${
                         isDone
                           ? 'border-transparent text-white'
                           : dia.isFimDeSemana
-                          ? 'bg-[#E4E6EE] border-[#E4E6EE]'
-                          : 'bg-white'
+                          ? 'bg-[#E4E6EE] border-[#E4E6EE] hover:bg-[#D5D8E2]'
+                          : 'bg-white hover:bg-[#F5F6FA]'
                       }`}
                       style={{
                         backgroundColor: isDone ? corEstudo : undefined,
@@ -229,12 +337,14 @@ export const ControleMatriz: React.FC<ControleMatrizProps> = ({ matriculaId, isM
               return (
                 <div
                   key={dia.dataStr}
-                  className={`cl ${
+                  onClick={() => handleToggleRevisaoNoturna(dia.dataStr)}
+                  title={`Revisão Noturna · ${dia.label} ${fez ? '(Concluída - clique para desmarcar)' : '(Clique para marcar)'}`}
+                  className={`cl cursor-pointer transition-all hover:ring-2 hover:ring-[#4338CA]/30 ${
                     fez
                       ? 'bg-[#8EC5FF] border-[#8EC5FF]'
                       : dia.isFimDeSemana
-                      ? 'bg-[#E4E6EE]'
-                      : 'bg-white'
+                      ? 'bg-[#E4E6EE] hover:bg-[#D5D8E2]'
+                      : 'bg-white hover:bg-[#F5F6FA]'
                   }`}
                 >
                   {fez && <Check size={14} className="stroke-[3] text-white" />}
@@ -243,22 +353,42 @@ export const ControleMatriz: React.FC<ControleMatrizProps> = ({ matriculaId, isM
             })}
           </div>
 
-          {/* Linha de Revisão Mensal */}
+          {/* Linha de Revisão Mensal (Células SOMENTE no 1º fim de semana do mês; demais dias em branco) */}
           <div className="g">
             <div className="lb bg-[#6FA8DC] text-[#14162B] text-xs font-bold">
               Revisão Mensal (1º fds)
             </div>
             {diasCols.map(dia => {
-              // Verifica se cai no primeiro fim de semana
-              const curD = new Date(dia.dataStr);
-              const isFirstWeekend = (curD.getDay() === 0 || curD.getDay() === 6) && curD.getDate() <= 7;
+              const [ano, mes, diaMes] = dia.dataStr.split('-').map(Number);
+              const curD = new Date(ano, mes - 1, diaMes);
+              const isFirstWeekend = isPrimeiroFimDeSemanaDoMes(curD);
+
+              // Os demais dias ficam rigorosamente em branco (sem caixa visual nem borda)
+              if (!isFirstWeekend) {
+                return (
+                  <div
+                    key={dia.dataStr}
+                    className="cl border-transparent bg-transparent pointer-events-none select-none"
+                  />
+                );
+              }
+
+              const mesRef = dia.dataStr.slice(0, 7);
+              const fezMensal = revisoesMensais.some(r => r.mes_referencia === mesRef);
+
               return (
                 <div
                   key={dia.dataStr}
-                  className={`cl ${
-                    isFirstWeekend ? 'border-2 border-[#6FA8DC] bg-white' : dia.isFimDeSemana ? 'bg-[#E4E6EE]' : 'bg-white'
+                  onClick={() => handleToggleRevisaoMensal(dia.dataStr)}
+                  title={`Revisão Mensal (1º fds) · ${dia.label} ${fezMensal ? '(Concluída - clique para desmarcar)' : '(Clique para marcar)'}`}
+                  className={`cl border-2 border-[#6FA8DC] cursor-pointer transition-all hover:ring-2 hover:ring-[#4338CA]/30 ${
+                    fezMensal
+                      ? 'bg-[#6FA8DC] text-white'
+                      : 'bg-white hover:bg-[#F0F7FF]'
                   }`}
-                />
+                >
+                  {fezMensal && <Check size={14} className="stroke-[3] text-white" />}
+                </div>
               );
             })}
           </div>

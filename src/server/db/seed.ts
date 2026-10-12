@@ -1,6 +1,7 @@
 // Carga Inicial (Seed) para a plataforma Handshake
 
 import { initDb, dbHelper } from './database.js';
+import { hashPassword, MENTOR_DEFAULT_EMAIL, MENTOR_DEFAULT_SENHA } from '../services/authService.js';
 
 export function runSeed() {
   initDb();
@@ -28,6 +29,7 @@ export function runSeed() {
     DELETE FROM auditoria;
     DELETE FROM mentorado;
     DELETE FROM convite;
+    DELETE FROM sessao_auth;
     DELETE FROM usuario;
   `);
 
@@ -39,14 +41,17 @@ export function runSeed() {
   const lucasId = 'usr_aluno_lucas';
   const tiagoId = 'usr_aluno_tiago';
 
+  const senhaAlunoHash = hashPassword('Aluno!123456');
+  const senhaMentorHash = hashPassword(MENTOR_DEFAULT_SENHA);
+
   // 1. Usuários
-  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel) VALUES (?, ?, ?, ?)`, mentorId, 'Gleyson Azevedo', 'gleyson@handshake.local', 'mentor');
-  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel) VALUES (?, ?, ?, ?)`, marinaId, 'Marina R.', 'marina@handshake.local', 'mentorado');
-  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel) VALUES (?, ?, ?, ?)`, rafaelId, 'Rafael S.', 'rafael@handshake.local', 'mentorado');
-  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel) VALUES (?, ?, ?, ?)`, camilaId, 'Camila P.', 'camila@handshake.local', 'mentorado');
-  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel) VALUES (?, ?, ?, ?)`, beatrizId, 'Beatriz L.', 'beatriz@handshake.local', 'mentorado');
-  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel) VALUES (?, ?, ?, ?)`, lucasId, 'Lucas M.', 'lucas@handshake.local', 'mentorado');
-  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel) VALUES (?, ?, ?, ?)`, tiagoId, 'Tiago A.', 'tiago@handshake.local', 'mentorado');
+  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel, senha_hash) VALUES (?, ?, ?, ?, ?)`, mentorId, 'Gleyson Azevedo', MENTOR_DEFAULT_EMAIL, 'mentor', senhaMentorHash);
+  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel, senha_hash) VALUES (?, ?, ?, ?, ?)`, marinaId, 'Marina R.', 'marina@handshake.local', 'mentorado', senhaAlunoHash);
+  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel, senha_hash) VALUES (?, ?, ?, ?, ?)`, rafaelId, 'Rafael S.', 'rafael@handshake.local', 'mentorado', senhaAlunoHash);
+  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel, senha_hash) VALUES (?, ?, ?, ?, ?)`, camilaId, 'Camila P.', 'camila@handshake.local', 'mentorado', senhaAlunoHash);
+  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel, senha_hash) VALUES (?, ?, ?, ?, ?)`, beatrizId, 'Beatriz L.', 'beatriz@handshake.local', 'mentorado', senhaAlunoHash);
+  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel, senha_hash) VALUES (?, ?, ?, ?, ?)`, lucasId, 'Lucas M.', 'lucas@handshake.local', 'mentorado', senhaAlunoHash);
+  dbHelper.run(`INSERT INTO usuario (id, nome, email, papel, senha_hash) VALUES (?, ?, ?, ?, ?)`, tiagoId, 'Tiago A.', 'tiago@handshake.local', 'mentorado', senhaAlunoHash);
 
   // 2. Perfis de Mentorado
   const mentMarinaId = 'ment_marina';

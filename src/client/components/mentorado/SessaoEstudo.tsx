@@ -70,14 +70,42 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
   ];
 
   const etapas = fase === 1 ? etapasFase1 : fase === 2 ? etapasFase2 : etapasFase3;
-  const [etapaIdx, setEtapaIdx] = useState(0);
 
-  // Cronômetro baseado em timestamp
+  // Recupera estado salvo do cronômetro para a matrícula (HU-3.4 / HU-3.6)
+  const cronometroSalvo = (() => {
+    try {
+      const item = localStorage.getItem(`handshake_cronometro_${matriculaId}`);
+      if (item) {
+        const parsed = JSON.parse(item);
+        if (Date.now() - parsed.salvoEm < 12 * 60 * 60 * 1000) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return null;
+  })();
+
+  const [etapaIdx, setEtapaIdx] = useState<number>(() => {
+    if (cronometroSalvo && typeof cronometroSalvo.etapaIdx === 'number') {
+      return cronometroSalvo.etapaIdx;
+    }
+    return 0;
+  });
+
   const etapaAtual = etapas[etapaIdx] || etapas[0];
   const duracaoSegundosTotal = etapaAtual.duracaoMin * 60;
-  const [segundosRestantes, setSegundosRestantes] = useState(duracaoSegundosTotal);
-  const [isPaused, setIsPaused] = useState(false);
-  const targetTimeRef = useRef<number>(Date.now() + duracaoSegundosTotal * 1000);
+
+  // Cronômetro: inicializado MANUALMENTE (nunca automaticamente)
+  const [isRunning, setIsRunning] = useState(false);
+  const [segundosRestantes, setSegundosRestantes] = useState<number>(() => {
+    if (cronometroSalvo && typeof cronometroSalvo.segundosRestantes === 'number') {
+      return cronometroSalvo.segundosRestantes;
+    }
+    return duracaoSegundosTotal;
+  });
+
+  const targetTimeRef = useRef<number>(Date.now() + segundosRestantes * 1000);
+  const isFirstMountRef = useRef(true);
 
   // Sessão Interrompida Recuperada (HU-3.6)
   const [sessaoInterrompidaDetectada, setSessaoInterrompidaDetectada] = useState<any | null>(null);
@@ -127,39 +155,56 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
       .finally(() => setLoading(false));
   }, [matriculaId]);
 
-  // Atualiza tempo restante e targetTime ao mudar de etapa
+  // Ao mudar de etapa após a montagem inicial, redefine o tempo da nova etapa (sem iniciar sozinho)
   useEffect(() => {
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      return;
+    }
+
     const totalSeg = etapaAtual.duracaoMin * 60;
     setSegundosRestantes(totalSeg);
+    setIsRunning(false);
     targetTimeRef.current = Date.now() + totalSeg * 1000;
 
-    // Salva no localStorage para tolerar fechamento inesperado
-    if (topico) {
-      localStorage.setItem(
-        'handshake_sessao_ativa',
-        JSON.stringify({
-          topicoTexto: topico.texto,
-          topicoNumeracao: topico.numeracao,
-          disciplinaNome: slot?.disciplina?.nome,
-          etapaIdx,
-          fase,
-          segundosRestantes: totalSeg,
-          salvoEm: Date.now(),
-        })
-      );
-    }
-  }, [etapaIdx, etapaAtual.duracaoMin, topico, fase]);
+    localStorage.setItem(
+      `handshake_cronometro_${matriculaId}`,
+      JSON.stringify({
+        etapaIdx,
+        segundosRestantes: totalSeg,
+        isRunning: false,
+        salvoEm: Date.now(),
+      })
+    );
+  }, [etapaIdx, etapaAtual.duracaoMin]);
 
-  // Loop do cronômetro resistente a segundo plano
+  // Salva no localStorage quando o tempo restante ou status mudar
+  const persistirTimer = (restantes: number, rodando: boolean) => {
+    localStorage.setItem(
+      `handshake_cronometro_${matriculaId}`,
+      JSON.stringify({
+        etapaIdx,
+        segundosRestantes: restantes,
+        isRunning: rodando,
+        targetTime: targetTimeRef.current,
+        salvoEm: Date.now(),
+      })
+    );
+  };
+
+  // Loop do cronômetro quando ativo (não auto-inicia)
   useEffect(() => {
-    if (isPaused) return;
+    if (!isRunning) return;
 
     const interval = setInterval(() => {
       const remaining = Math.max(0, Math.round((targetTimeRef.current - Date.now()) / 1000));
       setSegundosRestantes(remaining);
+      persistirTimer(remaining, true);
 
       if (remaining <= 0) {
         clearInterval(interval);
+        setIsRunning(false);
+        persistirTimer(0, false);
         // Toca alerta sonoro ao fim da etapa (HU-3.5)
         playStageChime();
 
@@ -172,35 +217,64 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
     }, 500);
 
     return () => clearInterval(interval);
-  }, [isPaused, etapaIdx, etapas.length]);
+  }, [isRunning, etapaIdx, etapas.length]);
 
   const togglePause = () => {
-    if (isPaused) {
+    if (!isRunning) {
       targetTimeRef.current = Date.now() + segundosRestantes * 1000;
-      setIsPaused(false);
+      setIsRunning(true);
+      persistirTimer(segundosRestantes, true);
     } else {
-      setIsPaused(true);
+      setIsRunning(false);
+      persistirTimer(segundosRestantes, false);
     }
   };
 
-  const proximaEtapa = () => {
+  const reiniciarEtapa = () => {
+    const totalSeg = etapaAtual.duracaoMin * 60;
+    setSegundosRestantes(totalSeg);
+    setIsRunning(false);
+    targetTimeRef.current = Date.now() + totalSeg * 1000;
+    persistirTimer(totalSeg, false);
+  };
+
+  const mudarEtapa = (novoIdx: number) => {
     playStageChime();
+    setEtapaIdx(novoIdx);
+    const duracaoNova = (etapas[novoIdx] || etapas[0]).duracaoMin * 60;
+    setSegundosRestantes(duracaoNova);
+    setIsRunning(false);
+    targetTimeRef.current = Date.now() + duracaoNova * 1000;
+    localStorage.setItem(
+      `handshake_cronometro_${matriculaId}`,
+      JSON.stringify({
+        etapaIdx: novoIdx,
+        segundosRestantes: duracaoNova,
+        isRunning: false,
+        salvoEm: Date.now(),
+      })
+    );
+  };
+
+  const proximaEtapa = () => {
     if (etapaIdx < etapas.length - 1) {
-      setEtapaIdx(prev => prev + 1);
+      mudarEtapa(etapaIdx + 1);
     } else {
+      setIsRunning(false);
       setShowModalConclusao(true);
     }
   };
 
   const handleRetomarInterrompida = () => {
     if (sessaoInterrompidaDetectada) {
-      setEtapaIdx(sessaoInterrompidaDetectada.etapaIdx || 0);
+      mudarEtapa(sessaoInterrompidaDetectada.etapaIdx || 0);
       setSessaoInterrompidaDetectada(null);
     }
   };
 
   const handleDescartarInterrompida = () => {
     localStorage.removeItem('handshake_sessao_ativa');
+    localStorage.removeItem(`handshake_cronometro_${matriculaId}`);
     setSessaoInterrompidaDetectada(null);
   };
 
@@ -297,6 +371,7 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
       const data = await res.json();
       if (data.ok) {
         localStorage.removeItem('handshake_sessao_ativa');
+        localStorage.removeItem(`handshake_cronometro_${matriculaId}`);
         setSessaoConcluidaSucesso(true);
         setTimeout(() => {
           setShowModalConclusao(false);
@@ -457,17 +532,36 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
           </div>
 
           {/* Botões de Ação */}
-          <div className="flex gap-3 w-full">
+          <div className="flex flex-wrap sm:flex-nowrap gap-2.5 w-full">
             <button
               onClick={togglePause}
-              className="flex-1 h-12 rounded-xl border border-[#D9DCEB] bg-white text-[#14162B] font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#F5F6FA]"
+              className={`flex-1 h-12 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-colors ${
+                !isRunning && segundosRestantes === duracaoSegundosTotal
+                  ? 'bg-[#4338CA] text-white hover:bg-[#3730A3]'
+                  : isRunning
+                  ? 'border border-[#D9DCEB] bg-white text-[#14162B] hover:bg-[#F5F6FA]'
+                  : 'bg-[#22C55E] text-white hover:bg-[#16A34A]'
+              }`}
             >
-              {isPaused ? <Play size={18} /> : <Pause size={18} />}
-              {isPaused ? 'Retomar' : 'Pausar'}
+              {!isRunning ? <Play size={18} /> : <Pause size={18} />}
+              <span>
+                {!isRunning && segundosRestantes === duracaoSegundosTotal
+                  ? 'Iniciar'
+                  : isRunning
+                  ? 'Pausar'
+                  : 'Retomar'}
+              </span>
+            </button>
+            <button
+              onClick={reiniciarEtapa}
+              title="Reiniciar tempo da etapa"
+              className="h-12 px-3.5 rounded-xl border border-[#D9DCEB] bg-white text-[#5B607A] hover:text-[#14162B] hover:bg-[#F5F6FA] flex items-center justify-center transition-colors"
+            >
+              <RefreshCw size={16} />
             </button>
             <button
               onClick={proximaEtapa}
-              className="flex-2 h-12 rounded-xl border-none text-white font-semibold text-base bg-[#4338CA] flex items-center justify-center gap-1 hover:opacity-90"
+              className="flex-1 sm:flex-2 h-12 rounded-xl border border-[#D9DCEB] bg-white text-[#14162B] font-semibold text-base flex items-center justify-center gap-1 hover:bg-[#F5F6FA] transition-colors"
             >
               <span>{etapaIdx < etapas.length - 1 ? `Ir para ${etapas[etapaIdx + 1].nome}` : 'Concluir estudo'}</span>
               <ChevronRight size={18} />
@@ -485,10 +579,7 @@ export const SessaoEstudo: React.FC<SessaoEstudoProps> = ({ matriculaId, isMobil
               return (
                 <div
                   key={etp.id}
-                  onClick={() => {
-                    playStageChime();
-                    setEtapaIdx(idx);
-                  }}
+                  onClick={() => mudarEtapa(idx)}
                   className={`flex items-center justify-between p-3.5 px-4 rounded-xl border text-[15px] cursor-pointer transition-colors ${
                     isCurrent
                       ? 'bg-[#E4E5FB] border-[#E4E5FB] text-[#2F2A9E] font-semibold'

@@ -1,25 +1,30 @@
 import React from 'react';
 import { Logo } from './Logo.js';
-import { Monitor, Smartphone, UserCheck, ShieldAlert } from 'lucide-react';
+import { Monitor, Smartphone, UserCheck, ShieldAlert, LogOut } from 'lucide-react';
 
 export type ViewMode = 'auto' | 'desktop' | 'mobile';
 
+export interface HeaderUser {
+  nome: string;
+  email: string;
+  papel: 'mentor' | 'mentorado';
+}
+
 interface HeaderProps {
-  currentRole: 'mentor' | 'mentorado';
-  onRoleChange: (role: 'mentor' | 'mentorado') => void;
+  currentUser: HeaderUser;
+  onLogout: () => void;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
-  currentMentoradoNome: string;
-  onMentoradoChange?: (id: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  currentRole,
-  onRoleChange,
+  currentUser,
+  onLogout,
   viewMode,
   onViewModeChange,
-  currentMentoradoNome,
 }) => {
+  const isMentor = currentUser.papel === 'mentor';
+
   return (
     <header className="bg-white border-b border-[#E3E5F3] px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-sm z-50">
       <div className="flex items-center gap-3">
@@ -63,29 +68,33 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Seletor de Papel / Persona */}
-        <div className="flex items-center bg-[#F5F6FA] border border-[#E3E5F3] rounded-lg p-0.5">
+        {/* Perfil Autenticado & Botão Sair */}
+        <div className="flex items-center gap-2 pl-2 border-l border-[#E3E5F3]">
+          <div className="flex items-center gap-2">
+            <div
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                isMentor ? 'bg-[#E4E5FB] text-[#2F2A9E]' : 'bg-[#E0F2FE] text-[#0369A1]'
+              }`}
+            >
+              {isMentor ? <ShieldAlert size={14} /> : <UserCheck size={14} />}
+            </div>
+            <div className="hidden sm:flex flex-col text-left">
+              <span className="text-xs font-bold text-[#14162B] leading-tight">
+                {currentUser.nome}
+              </span>
+              <span className="text-[10px] text-[#5B607A] leading-tight">
+                {isMentor ? 'Mentor' : 'Mentorado'}
+              </span>
+            </div>
+          </div>
+
           <button
-            onClick={() => onRoleChange('mentorado')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold transition-colors ${
-              currentRole === 'mentorado'
-                ? 'bg-[#4338CA] text-white shadow-xs'
-                : 'text-[#5B607A] hover:text-[#14162B]'
-            }`}
+            onClick={onLogout}
+            title="Encerrar sessão"
+            className="btn btn-secondary h-8 px-2.5 text-xs text-[#DC2626] hover:bg-[#FEE2E2] hover:border-[#FCA5A5] flex items-center gap-1 ml-1"
           >
-            <UserCheck size={14} />
-            <span>Mentorado ({currentMentoradoNome})</span>
-          </button>
-          <button
-            onClick={() => onRoleChange('mentor')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold transition-colors ${
-              currentRole === 'mentor'
-                ? 'bg-[#4338CA] text-white shadow-xs'
-                : 'text-[#5B607A] hover:text-[#14162B]'
-            }`}
-          >
-            <ShieldAlert size={14} />
-            <span>Mentor (Gleyson)</span>
+            <LogOut size={13} />
+            <span className="hidden md:inline">Sair</span>
           </button>
         </div>
       </div>

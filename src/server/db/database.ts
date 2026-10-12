@@ -78,6 +78,38 @@ function runMigrations() {
       db.exec(`ALTER TABLE disciplina ADD COLUMN questoes_estimadas INTEGER DEFAULT 0`);
     }
   }
+
+  const usuarioCols = getColumns('usuario');
+  if (usuarioCols.size > 0) {
+    if (!usuarioCols.has('senha_hash')) {
+      db.exec(`ALTER TABLE usuario ADD COLUMN senha_hash TEXT`);
+    }
+  }
+
+  const conviteCols = getColumns('convite');
+  if (conviteCols.size > 0) {
+    if (!conviteCols.has('nome')) {
+      db.exec(`ALTER TABLE convite ADD COLUMN nome TEXT`);
+    }
+    if (!conviteCols.has('fim_mentoria')) {
+      db.exec(`ALTER TABLE convite ADD COLUMN fim_mentoria TEXT`);
+    }
+    if (!conviteCols.has('dia_corte_semana')) {
+      db.exec(`ALTER TABLE convite ADD COLUMN dia_corte_semana INTEGER DEFAULT 2`);
+    }
+    if (!conviteCols.has('edital_id')) {
+      db.exec(`ALTER TABLE convite ADD COLUMN edital_id TEXT`);
+    }
+  }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS sessao_auth (
+      token TEXT PRIMARY KEY,
+      usuario_id TEXT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+      criado_em TEXT NOT NULL,
+      expira_em TEXT NOT NULL
+    );
+  `);
 }
 
 // Helper tipado para consultas
