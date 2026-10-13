@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/server/index.ts",
     "build": "vite build && tsc -p tsconfig.server.json",
+    "build:client": "vite build",
+    "build:pages": "VITE_BASE_PATH=/handshake/ vite build",
     "test": "vitest run",
     "seed": "tsx src/server/db/seed.ts"
   },

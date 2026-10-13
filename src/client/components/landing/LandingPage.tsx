@@ -435,10 +435,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEntrar, onLoginDemo 
               </ul>
             </div>
             <button
-              onClick={onEntrar}
+              onClick={() => onLoginDemo ? onLoginDemo('gleysonazevedo@gmail.com', 'mentor') : onEntrar()}
               className="btn btn-primary h-11 w-full text-xs font-semibold mt-6 flex items-center justify-center gap-1.5"
             >
-              <span>Acessar como Mentor</span>
+              <span>Acessar como Mentor (Demo)</span>
               <ArrowRight size={14} />
             </button>
           </div>
@@ -471,10 +471,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEntrar, onLoginDemo 
               </ul>
             </div>
             <button
-              onClick={onEntrar}
+              onClick={() => onLoginDemo ? onLoginDemo('marina@handshake.local', 'mentorado') : onEntrar()}
               className="btn h-11 w-full text-xs font-semibold mt-6 bg-[#F5F6FA] border border-[#D9DCEB] text-[#14162B] hover:bg-[#EEF0F7] flex items-center justify-center gap-1.5"
             >
-              <span>Acessar como Mentorado</span>
+              <span>Acessar como Mentorado (Demo)</span>
               <ArrowRight size={14} />
             </button>
           </div>

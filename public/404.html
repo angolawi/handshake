@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <title>Handshake · Redirecionando...</title>
+    <script>
+      // Redireciona para a raiz do repositório no GitHub Pages preservando query e hash
+      var pathSegments = window.location.pathname.split('/');
+      // Se estiver no formato /handshake/... redireciona para /handshake/
+      var repoBase = pathSegments[1] === 'handshake' ? '/handshake/' : '/';
+      window.location.replace(repoBase + window.location.search + window.location.hash);
+    </script>
+  </head>
+  <body style="font-family: sans-serif; background: #F5F6FA; color: #14162B; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+    <p>Redirecionando para o Handshake...</p>
+  </body>
+</html>

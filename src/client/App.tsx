@@ -165,6 +165,23 @@ export const App: React.FC = () => {
       return (
         <LandingPage
           onEntrar={() => setPublicView('login')}
+          onLoginDemo={(email, papel) => {
+            const demoUser = papel === 'mentor' ? {
+              id: 'usr_mentor_gleyson',
+              nome: 'Gleyson Azevedo',
+              email: 'gleysonazevedo@gmail.com',
+              papel: 'mentor' as const,
+              editalId: 'edital_cgu',
+            } : {
+              id: 'usr_aluno_marina',
+              nome: 'Marina R.',
+              email: 'marina@handshake.local',
+              papel: 'mentorado' as const,
+              matriculaId: 'mat_marina_cgu',
+              editalId: 'edital_cgu',
+            };
+            handleLoginSucesso('demo_token', demoUser);
+          }}
         />
       );
     }
