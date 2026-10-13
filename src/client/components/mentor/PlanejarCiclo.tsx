@@ -17,10 +17,13 @@ import {
   ArrowRightLeft,
   Table,
   Calendar,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface PlanejarCicloProps {
   matriculaId?: string;
+  mentoradoNome?: string;
+  onVoltar?: () => void;
   onPublicado?: () => void;
 }
 
@@ -73,17 +76,59 @@ const NEURO_DATA: Record<'decoreba_dupla' | 'raciocinio_duplo', NeuroMotivation>
 };
 
 export const PlanejarCiclo: React.FC<PlanejarCicloProps> = ({
-  matriculaId = 'mat_marina_cgu',
+  matriculaId,
+  mentoradoNome,
+  onVoltar,
   onPublicado,
 }) => {
+  const [currentMatriculaId, setCurrentMatriculaId] = useState(matriculaId || '');
+  const [alunoNome, setAlunoNome] = useState(mentoradoNome || '');
+  const [cicloNumero, setCicloNumero] = useState(1);
+  const [matriculasDisponiveis, setMatriculasDisponiveis] = useState<Array<{
+    matricula_id: string;
+    mentorado_id: string;
+    mentorado_nome: string;
+    edital_id: string;
+    edital_nome: string;
+    ciclo_numero?: number;
+  }>>([]);
+
   const [loading, setLoading] = useState(true);
-  const [editalNome, setEditalNome] = useState('Concurso CGU');
-  const [editalId, setEditalId] = useState('edital_cgu');
-  const [dataInicio, setDataInicio] = useState('2026-11-08');
+  const [editalNome, setEditalNome] = useState('Edital');
+  const [editalId, setEditalId] = useState('');
+  const [dataInicio, setDataInicio] = useState(new Date().toISOString().split('T')[0]);
   const [slotsPorDia, setSlotsPorDia] = useState('3');
   const [duracaoDias, setDuracaoDias] = useState('30');
   const [publicando, setPublicando] = useState(false);
   const [publicadoSucesso, setPublicadoSucesso] = useState(false);
+
+  // Carrega lista de matrículas ativas do mentor para permitir alternância na aba global
+  useEffect(() => {
+    fetch('/api/mentor/matriculas')
+      .then(res => res.json())
+      .then((lista: any[]) => {
+        if (Array.isArray(lista) && lista.length > 0) {
+          setMatriculasDisponiveis(lista);
+          if (!currentMatriculaId) {
+            setCurrentMatriculaId(lista[0].matricula_id);
+            if (!alunoNome) setAlunoNome(lista[0].mentorado_nome);
+          }
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (matriculaId) {
+      setCurrentMatriculaId(matriculaId);
+    }
+  }, [matriculaId]);
+
+  useEffect(() => {
+    if (mentoradoNome) {
+      setAlunoNome(mentoradoNome);
+    }
+  }, [mentoradoNome]);
 
   // Sequência ativa e disciplinas reais do edital
   const [slotsSequencia, setSlotsSequencia] = useState<SlotItem[]>([]);
@@ -106,13 +151,17 @@ export const PlanejarCiclo: React.FC<PlanejarCicloProps> = ({
 
   // Carrega sugestão inicial inteligente e todas as disciplinas do edital
   const fetchSugestaoInteligente = () => {
+    if (!currentMatriculaId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     fetch('/api/ciclos/sugerir', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        matriculaId,
-        editalId,
+        matriculaId: currentMatriculaId,
+        editalId: editalId || undefined,
         slotsPorDia: Number(slotsPorDia) || 3,
         duracaoDias: Number(duracaoDias) || 30,
       }),
@@ -131,6 +180,12 @@ export const PlanejarCiclo: React.FC<PlanejarCicloProps> = ({
         if (data.editalId) {
           setEditalId(data.editalId);
         }
+        if (data.mentoradoNome && !mentoradoNome) {
+          setAlunoNome(data.mentoradoNome);
+        }
+        if (data.cicloNumero) {
+          setCicloNumero(data.cicloNumero);
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -138,7 +193,7 @@ export const PlanejarCiclo: React.FC<PlanejarCicloProps> = ({
 
   useEffect(() => {
     fetchSugestaoInteligente();
-  }, [matriculaId, slotsPorDia]);
+  }, [currentMatriculaId, slotsPorDia]);
 
   // Contagem de slots por disciplina para exibir na paleta
   const frequenciaPorDisciplina = useMemo(() => {
@@ -299,7 +354,7 @@ export const PlanejarCiclo: React.FC<PlanejarCicloProps> = ({
 
   // Publicar o ciclo customizado no banco de dados
   const handlePublicarCiclo = async () => {
-    if (slotsSequencia.length === 0) return;
+    if (slotsSequencia.length === 0 || !currentMatriculaId) return;
     setPublicando(true);
 
     try {
@@ -307,7 +362,7 @@ export const PlanejarCiclo: React.FC<PlanejarCicloProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          matriculaId,
+          matriculaId: currentMatriculaId,
           inicio: dataInicio,
           duracaoDias: Number(duracaoDias) || 30,
           slotsPorDia: Number(slotsPorDia) || 3,
@@ -460,8 +515,40 @@ export const PlanejarCiclo: React.FC<PlanejarCicloProps> = ({
     );
   };
 
+  if (!loading && !currentMatriculaId && matriculasDisponiveis.length === 0) {
+    return (
+      <div className="card p-12 text-center max-w-lg mx-auto my-12 flex flex-col items-center gap-4">
+        <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center">
+          <AlertTriangle size={24} />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-[#14162B]">Nenhum mentorado com edital atribuído</h2>
+          <p className="text-sm text-[#5B607A] mt-1">
+            Para planejar e montar um ciclo de estudos, acesse o painel de mentorados e vincule um edital a um aluno primeiro.
+          </p>
+        </div>
+        {onVoltar && (
+          <button onClick={onVoltar} className="btn btn-primary mt-2">
+            Voltar
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-[1360px] mx-auto">
+      {/* Botão voltar se vier de perfil específico */}
+      {onVoltar && (
+        <button
+          onClick={onVoltar}
+          className="flex items-center gap-1.5 text-sm font-semibold text-[#4338CA] hover:underline w-fit"
+        >
+          <ArrowLeft size={16} />
+          <span>Voltar para perfil de {alunoNome || 'mentorado'}</span>
+        </button>
+      )}
+
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -471,12 +558,38 @@ export const PlanejarCiclo: React.FC<PlanejarCicloProps> = ({
               <Sparkles size={13} /> Edição Livre & Drag-and-Drop
             </span>
           </div>
-          <div className="text-base text-[#5B607A] mt-1">
-            Marina R. · Ciclo 02 · {editalNome}
+          <div className="text-base text-[#5B607A] mt-1 flex flex-wrap items-center gap-2">
+            <span>
+              <strong>{alunoNome || 'Mentorado'}</strong> · Ciclo 0{cicloNumero} · {editalNome}
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Seletor rápido de aluno caso haja múltiplas matrículas e não esteja no drill-down */}
+          {!onVoltar && matriculasDisponiveis.length > 1 && (
+            <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-xl border border-[#D9DCEB] shadow-xs">
+              <label className="text-xs font-semibold text-[#5B607A] whitespace-nowrap">Aluno:</label>
+              <select
+                value={currentMatriculaId}
+                onChange={e => {
+                  const m = matriculasDisponiveis.find(item => item.matricula_id === e.target.value);
+                  if (m) {
+                    setCurrentMatriculaId(m.matricula_id);
+                    setAlunoNome(m.mentorado_nome);
+                  }
+                }}
+                className="text-xs font-semibold text-[#14162B] bg-transparent outline-none cursor-pointer py-1"
+              >
+                {matriculasDisponiveis.map(m => (
+                  <option key={m.matricula_id} value={m.matricula_id}>
+                    {m.mentorado_nome} — {m.edital_nome} (Ciclo 0{m.ciclo_numero || 1})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <button
             onClick={() => abrirModalNeuro('geral')}
             className="btn border border-indigo-200 text-indigo-700 bg-indigo-50/50 hover:bg-indigo-50 h-11 flex items-center gap-2 text-sm font-semibold transition"

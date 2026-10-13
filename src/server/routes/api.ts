@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'node:path';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import { dbHelper } from '../db/database.js';
 import {
   parseEditalText,
@@ -306,10 +307,21 @@ apiRouter.get('/mentorados/:id', (req, res) => {
   );
   if (!mentorado) return res.status(404).json({ error: 'Mentorado não encontrado' });
 
-  const matricula = dbHelper.get(
-    `SELECT mat.id, e.nome as edital_nome, e.banca FROM matricula mat JOIN edital e ON mat.edital_id = e.id WHERE mat.mentorado_id = ? AND mat.removido_em IS NULL`,
+  const matricula = (dbHelper.get<{ id: string; edital_id: string; edital_nome: string; banca: string }>(
+    `SELECT mat.id, mat.edital_id, e.nome as edital_nome, e.banca FROM matricula mat JOIN edital e ON mat.edital_id = e.id WHERE mat.mentorado_id = ? AND mat.removido_em IS NULL`,
     id
-  );
+  ) || null);
+
+  const cicloAtivo = matricula ? (dbHelper.get<{
+    id: string;
+    numero: number;
+    inicio: string;
+    slots_por_dia: number;
+    duracao_dias: number;
+  }>(
+    `SELECT id, numero, inicio, slots_por_dia, duracao_dias FROM ciclo WHERE matricula_id = ? ORDER BY numero DESC LIMIT 1`,
+    matricula.id
+  ) || null) : null;
 
   const auditorias = getAuditsByMentorado(id);
 
@@ -331,6 +343,7 @@ apiRouter.get('/mentorados/:id', (req, res) => {
   res.json({
     mentorado,
     matricula,
+    cicloAtivo,
     auditorias,
     resumos,
     metricas,
@@ -1018,18 +1031,54 @@ apiRouter.post('/editais/:id/salvar-lote', (req, res) => {
 });
 
 
+// Lista de todas as matrículas ativas para seleção rápida de ciclos pelo mentor
+apiRouter.get('/mentor/matriculas', (req, res) => {
+  const lista = dbHelper.all<{
+    matricula_id: string;
+    mentorado_id: string;
+    mentorado_nome: string;
+    edital_id: string;
+    edital_nome: string;
+    ciclo_numero?: number;
+  }>(
+    `SELECT mat.id as matricula_id, m.id as mentorado_id, u.nome as mentorado_nome,
+            e.id as edital_id, e.nome as edital_nome,
+            (SELECT MAX(numero) FROM ciclo WHERE matricula_id = mat.id) as ciclo_numero
+     FROM matricula mat
+     JOIN mentorado m ON mat.mentorado_id = m.id
+     JOIN usuario u ON m.usuario_id = u.id
+     JOIN edital e ON mat.edital_id = e.id
+     WHERE mat.removido_em IS NULL AND u.excluido_em IS NULL
+     ORDER BY u.nome ASC`
+  );
+  res.json(lista);
+});
+
 // --- CICLOS (HU-3.1 a 3.3) ---
 apiRouter.post('/ciclos/sugerir', (req, res) => {
   const { editalId, matriculaId, slotsPorDia = 3, duracaoDias = 30 } = req.body;
 
   let targetEditalId = editalId;
-  if (!targetEditalId && matriculaId) {
-    const mat = dbHelper.get<{ edital_id: string }>(
-      `SELECT edital_id FROM matricula WHERE id = ?`,
+  let mentoradoNome = 'Mentorado';
+  let cicloNumero = 1;
+
+  if (matriculaId) {
+    const mat = dbHelper.get<{ edital_id: string; aluno_nome: string; ciclo_max: number }>(
+      `SELECT mat.edital_id, u.nome as aluno_nome, 
+              (SELECT COALESCE(MAX(numero), 0) + 1 FROM ciclo WHERE matricula_id = mat.id) as ciclo_max
+       FROM matricula mat
+       JOIN mentorado m ON mat.mentorado_id = m.id
+       JOIN usuario u ON m.usuario_id = u.id
+       WHERE mat.id = ?`,
       matriculaId
     );
-    if (mat) targetEditalId = mat.edital_id;
+    if (mat) {
+      if (!targetEditalId) targetEditalId = mat.edital_id;
+      mentoradoNome = mat.aluno_nome;
+      cicloNumero = mat.ciclo_max || 1;
+    }
   }
+
   if (!targetEditalId) {
     targetEditalId = 'edital_cgu';
   }
@@ -1050,6 +1099,8 @@ apiRouter.post('/ciclos/sugerir', (req, res) => {
     ...plan,
     editalId: targetEditalId,
     editalNome: edital?.nome || 'Edital do Concurso',
+    mentoradoNome,
+    cicloNumero,
     todasDisciplinas: disciplinas,
   });
 });
@@ -1089,44 +1140,49 @@ apiRouter.post('/ciclos/publicar', (req, res) => {
     return res.status(400).json({ error: 'Dados do ciclo incompletos' });
   }
 
-  const cicloId = crypto.randomUUID();
-  const proximoNumero = (dbHelper.get<{ maxNum: number }>(
-    `SELECT COALESCE(MAX(numero), 0) + 1 as maxNum FROM ciclo WHERE matricula_id = ?`,
-    matriculaId
-  )?.maxNum) || 1;
+  try {
+    const cicloId = `ciclo_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const proximoNumero = (dbHelper.get<{ maxNum: number }>(
+      `SELECT COALESCE(MAX(numero), 0) + 1 as maxNum FROM ciclo WHERE matricula_id = ?`,
+      matriculaId
+    )?.maxNum) || 1;
 
-  dbHelper.run(
-    `INSERT INTO ciclo (id, matricula_id, numero, inicio, duracao_dias, slots_por_dia)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    cicloId,
-    matriculaId,
-    proximoNumero,
-    inicio,
-    duracaoDias,
-    slotsPorDia
-  );
-
-  for (let i = 0; i < slots.length; i++) {
-    const s = slots[i];
     dbHelper.run(
-      `INSERT INTO ciclo_slot (id, ciclo_id, disciplina_id, ordem)
-       VALUES (?, ?, ?, ?)`,
-      crypto.randomUUID(),
+      `INSERT INTO ciclo (id, matricula_id, numero, inicio, duracao_dias, slots_por_dia)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       cicloId,
-      s.disciplina_id,
-      i + 1
+      matriculaId,
+      proximoNumero,
+      inicio,
+      duracaoDias,
+      slotsPorDia
     );
+
+    for (let i = 0; i < slots.length; i++) {
+      const s = slots[i];
+      dbHelper.run(
+        `INSERT INTO ciclo_slot (id, ciclo_id, disciplina_id, ordem)
+         VALUES (?, ?, ?, ?)`,
+        `cslot_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`,
+        cicloId,
+        s.disciplina_id,
+        i + 1
+      );
+    }
+
+    // Inicializa Rodada 1
+    dbHelper.run(
+      `INSERT INTO rodada (id, ciclo_id, numero, cor)
+       VALUES (?, ?, 1, '#8EC5FF')`,
+      `rod_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      cicloId
+    );
+
+    res.status(201).json({ ok: true, cicloId, numero: proximoNumero });
+  } catch (err: any) {
+    console.error('Erro ao publicar ciclo:', err);
+    res.status(500).json({ error: err.message || 'Erro ao publicar ciclo' });
   }
-
-  // Inicializa Rodada 1
-  dbHelper.run(
-    `INSERT INTO rodada (id, ciclo_id, numero, cor)
-     VALUES (?, ?, 1, '#8EC5FF')`,
-    crypto.randomUUID(),
-    cicloId
-  );
-
-  res.json({ ok: true, cicloId });
 });
 
 // --- VISÃO DO MENTORADO: EDITAL (HU-2.8) ---

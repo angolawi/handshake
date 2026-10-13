@@ -18,6 +18,7 @@ import {
   Target,
 } from 'lucide-react';
 import { RelatorioReuniaoSemanal } from './RelatorioReuniaoSemanal.js';
+import { PlanejarCiclo } from './PlanejarCiclo.js';
 
 interface MentoradoDetalheProps {
   mentoradoId: string;
@@ -27,6 +28,7 @@ interface MentoradoDetalheProps {
 export const MentoradoDetalhe: React.FC<MentoradoDetalheProps> = ({ mentoradoId, onVoltar }) => {
   const [loading, setLoading] = useState(true);
   const [dados, setDados] = useState<any>(null);
+  const [subTela, setSubTela] = useState<'detalhe' | 'planejar_ciclo'>('detalhe');
   const [activeTab, setActiveTab] = useState<'geral' | 'questoes_semanais' | 'auditoria'>('geral');
   const [comentarioTexto, setComentarioTexto] = useState('');
   const [fotoSelecionadaId, setFotoSelecionadaId] = useState<string | null>(null);
@@ -125,6 +127,7 @@ export const MentoradoDetalhe: React.FC<MentoradoDetalheProps> = ({ mentoradoId,
   };
 
   const handleSalvarOverrideFase = async () => {
+    if (!dados?.matricula?.id) return;
     setSalvandoOverride(true);
     try {
       await fetch('/api/mentor/override-fase', {
@@ -132,7 +135,7 @@ export const MentoradoDetalhe: React.FC<MentoradoDetalheProps> = ({ mentoradoId,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mentorId: 'usr_mentor_gleyson',
-          matriculaId: dados?.matricula?.id || 'mat_marina_cgu',
+          matriculaId: dados.matricula.id,
           disciplinaId: discOverrideId,
           faseNova,
         }),
@@ -187,8 +190,24 @@ export const MentoradoDetalhe: React.FC<MentoradoDetalheProps> = ({ mentoradoId,
   const mentorado = dados?.mentorado;
   const auditorias = dados?.auditorias || [];
   const resumos = dados?.resumos || [];
-  const matriculaId = dados?.matricula?.id || 'mat_marina_cgu';
+  const matricula = dados?.matricula;
+  const matriculaId = matricula?.id || '';
+  const cicloAtivo = dados?.cicloAtivo;
   const metricas = dados?.metricas;
+
+  if (subTela === 'planejar_ciclo' && matricula) {
+    return (
+      <PlanejarCiclo
+        matriculaId={matricula.id}
+        mentoradoNome={mentorado?.nome}
+        onVoltar={() => setSubTela('detalhe')}
+        onPublicado={() => {
+          setSubTela('detalhe');
+          fetchDetalhes();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-[1280px] mx-auto">
@@ -204,29 +223,118 @@ export const MentoradoDetalhe: React.FC<MentoradoDetalheProps> = ({ mentoradoId,
       {/* Cabeçalho do Mentorado */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <div className="lab">Mentorado · {dados?.matricula?.edital_nome || 'CGU'}</div>
+          <div className="lab">
+            Mentorado · {matricula ? `${matricula.edital_nome} (${matricula.banca})` : 'Sem edital atribuído'}
+          </div>
           <h1 className="d font-bold text-3xl md:text-4xl text-[#14162B] tracking-tight mt-1">
             {mentorado?.nome}
           </h1>
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex flex-wrap items-center gap-2 mt-2">
             <span className="chip gr font-medium">reunião às terças</span>
             <span className="chip f1 font-medium">
               mentoria até {mentorado?.fim_mentoria ? mentorado.fim_mentoria.split('-').reverse().join('/') : '30/04/2027'}
             </span>
+            {cicloAtivo ? (
+              <span className="chip text-indigo-700 bg-indigo-50 border border-indigo-200 font-semibold flex items-center gap-1">
+                <CheckCircle2 size={12} className="text-indigo-600" />
+                Ciclo 0{cicloAtivo.numero} Ativo ({cicloAtivo.slots_por_dia} slots/dia)
+              </span>
+            ) : matricula ? (
+              <span className="chip text-amber-700 bg-amber-50 border border-amber-200 font-medium">
+                Sem ciclo ativo
+              </span>
+            ) : (
+              <span className="chip text-red-700 bg-red-50 border border-red-200 font-medium">
+                Nenhum edital vinculado
+              </span>
+            )}
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <button onClick={handleAbrirMudarEdital} className="btn flex items-center gap-1.5">
-            <BookOpen size={15} />
-            <span>Trocar edital</span>
-          </button>
-          <button onClick={() => setShowModalTempos(true)} className="btn flex items-center gap-1.5">
-            <Settings2 size={15} />
-            <span>Ajustar tempos</span>
-          </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {matricula ? (
+            <>
+              <button
+                onClick={() => setSubTela('planejar_ciclo')}
+                className="btn btn-primary flex items-center gap-1.5 shadow-sm"
+              >
+                <Sparkles size={15} />
+                <span>{cicloAtivo ? 'Montar Novo Ciclo' : 'Montar Ciclo de Estudos'}</span>
+              </button>
+              <button onClick={handleAbrirMudarEdital} className="btn flex items-center gap-1.5">
+                <BookOpen size={15} />
+                <span>Trocar edital</span>
+              </button>
+              <button onClick={() => setShowModalTempos(true)} className="btn flex items-center gap-1.5">
+                <Settings2 size={15} />
+                <span>Ajustar tempos</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleAbrirMudarEdital}
+                className="btn btn-primary flex items-center gap-1.5 shadow-sm"
+              >
+                <BookOpen size={15} />
+                <span>Atribuir edital</span>
+              </button>
+              <button onClick={() => setShowModalTempos(true)} className="btn flex items-center gap-1.5">
+                <Settings2 size={15} />
+                <span>Ajustar tempos</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Banner de Orientação: Aluno Sem Edital */}
+      {!matricula && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+              <AlertTriangle size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 text-base">Nenhum edital atribuído a {mentorado?.nome}</h3>
+              <p className="text-sm text-slate-600 mt-0.5">
+                Para iniciar o acompanhamento, gerar a matriz de tópicos e montar o ciclo de estudos, vincule um edital cadastrado a este aluno.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleAbrirMudarEdital}
+            className="btn btn-primary whitespace-nowrap px-4 py-2.5 text-sm font-semibold flex items-center gap-2 shrink-0"
+          >
+            <BookOpen size={16} />
+            <span>Atribuir Edital Agora</span>
+          </button>
+        </div>
+      )}
+
+      {/* Banner de Orientação: Edital Vinculado mas Sem Ciclo */}
+      {matricula && !cicloAtivo && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-700 shrink-0">
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 text-base">Ciclo de estudos ainda não iniciado para {mentorado?.nome}</h3>
+              <p className="text-sm text-slate-600 mt-0.5">
+                Edital <strong>{matricula.edital_nome}</strong> vinculado. Inicie o planejamento do 1º ciclo com distribuição neuropsicológica e slots diários.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setSubTela('planejar_ciclo')}
+            className="btn btn-primary whitespace-nowrap px-4 py-2.5 text-sm font-semibold flex items-center gap-2 shrink-0"
+          >
+            <Sparkles size={16} />
+            <span>Iniciar Montagem do Ciclo</span>
+          </button>
+        </div>
+      )}
 
       {/* Abas Secundárias do Mentorado */}
       <div className="flex gap-2 border-b border-[#E3E5F3] pb-1">

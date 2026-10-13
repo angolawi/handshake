@@ -229,7 +229,7 @@ export const App: React.FC = () => {
             />
           );
         case 'ciclos':
-          return <PlanejarCiclo matriculaId={matriculaId} onPublicado={() => setTabMentor('mentorados')} />;
+          return <PlanejarCiclo onPublicado={() => setTabMentor('mentorados')} />;
         case 'convites':
           return <ConvitesGerenciar />;
         default:

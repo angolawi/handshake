@@ -10,6 +10,11 @@ export const RelatorioReuniaoSemanal: React.FC<RelatorioReuniaoSemanalProps> = (
   const [relatorios, setRelatorios] = useState<QuestoesSemanais[]>([]);
 
   useEffect(() => {
+    if (!matriculaId) {
+      setLoading(false);
+      setRelatorios([]);
+      return;
+    }
     fetch(`/api/matriculas/${matriculaId}/questoes-semanais`)
       .then(res => res.json())
       .then(data => {
